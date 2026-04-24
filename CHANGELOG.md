@@ -1,6 +1,30 @@
-# Registro de Archivos
+# Registro de Cambios
 
-Documentación de los archivos del proyecto, su propósito y funcionamiento.
+Documentación de cambios del proyecto, su propósito y funcionamiento.
+
+---
+
+## [2026-04-23] Reorganización y Composer
+
+### Cambios
+
+- Archivos reorganizados en `src/` y `public/` siguiendo estructura PSR-4
+- Agregado `composer.json` con autoload PSR-4
+- Agregado `composer install` para dependencias
+- Agregado `AGENTS.md` con configuración para agentes IA
+- Agregado `.agents/skills/` con skills de desarrollo PHP
+- Agregado `.github/workflows/opencode.yml` para CI/CD
+
+### Estructura Actual
+
+```
+src/                      # Código fuente (PSR-4)
+public/                  # Archivos públicos (raíz del servidor)
+.agents/skills/          # Skills del proyecto
+.github/workflows/       # GitHub Actions
+vendor/                 # Dependencias Composer
+composer.json           # Autoload PSR-4
+```
 
 ---
 

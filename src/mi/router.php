@@ -1,7 +1,6 @@
 <?php
 
-require "./HttpMethod.php";
-require "./HttpNotfoundException.php";
+namespace mi;
 class Router {
     protected array $routes = [];
 
@@ -24,11 +23,24 @@ class Router {
         return $action;
     }
 
+    // Construccion de las rutas HTTP
     public function get(string $uri, callable $action) {
         $this->routes[HttpMethod::GET->value][$uri] = $action;
     }
 
     public function post(string $uri, callable $action) {
         $this->routes[HttpMethod::POST->value][$uri] = $action;
+    }
+
+    public function put(string $uri, callable $action) {
+        $this->routes[HttpMethod::PUT->value][$uri] = $action;
+    }
+
+    public function patch(string $uri, callable $action){
+        $this->routes[HttpMethod::PATCH->value][$uri] = $action;
+    }
+
+    public function delete(string $uri, callable $action) {
+        $this->routes[HttpMethod::DELETE->value][$uri] = $action;
     }
 }

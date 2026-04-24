@@ -21,3 +21,5 @@ php -S localhost:8000
 - No composer.json yet - pure PHP, no external dependencies
 - No tests, linting, or CI configured
 - Router class is currently a stub with only doc comments
+- **Skills**: Install skills in project (`.agents/skills/`), not globally
+- **Agent folders** (`.claude/`, `.windsurf/`): Do NOT create unless user explicitly requests them
