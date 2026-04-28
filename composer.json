@@ -8,11 +8,21 @@
             "mi\\": "src/mi"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "mi\\Tests\\": "tests"
+        }
+    },
+    "scripts":{
+        "tests": "phpunit --color=always --testdox --display-errors --display-warnings --display-deprecations tests/"
+    },
     "authors": [
         {
             "name": "Carlos Daniel M. A.",
             "email": "carlosdanielface1@hotmail.com"
         }
     ],
-    "require": {}
+    "require-dev": {
+        "phpunit/phpunit": "^11.5"
+    }
 }
