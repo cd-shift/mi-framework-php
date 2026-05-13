@@ -3,7 +3,9 @@
 require_once "../vendor/autoload.php";
 
 use mi\HttpNotFoundException;
+use mi\Request;
 use mi\Router;
+use mi\Server;
 
 $router = new Router();
 
@@ -33,13 +35,13 @@ try {
 
     // Devuelve una ruta ahora, no una accion
 
-    $route = $router->resolve($_SERVER["REQUEST_URI"], $_SERVER["REQUEST_METHOD"]);
+    $route = $router->resolve(new Request(new Server()));
     $action = $route->action();
     print($action());
 
 
 
 } catch (HttpNotFoundException $e) {
-    print("NOT FOUND");
+    print("NOT FOUND\n");
     http_response_code(404);
 }
