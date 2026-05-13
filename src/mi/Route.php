@@ -24,7 +24,7 @@ class Route{
 
     // Getters & Setters
     // Version moderna de PHP se puede omitir get y set
-    public function Uri(){
+    public function uri(){
         return $this->uri;
     }
 
@@ -34,7 +34,7 @@ class Route{
 
     // Funcion si una uri hace match
     public function matches(string $uri):bool{
-        return preg_match("#^/?{$this->regex}$#", $uri) === 1;
+        return preg_match("#^{$this->regex}/?$#", $uri);
     }
 
     // Funcion para saber si la ruta tiene o no parametros

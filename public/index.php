@@ -2,9 +2,7 @@
 
 require_once "../vendor/autoload.php";
 
-use mi\HttpMethod;
 use mi\HttpNotFoundException;
-use mi\Route;
 use mi\Router;
 
 $router = new Router();

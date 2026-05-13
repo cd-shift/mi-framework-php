@@ -3,7 +3,6 @@
 namespace mi;
 
 use Closure;
-use PhpParser\Builder\Method;
 
 class Router {
     protected array $routes = [];
@@ -11,7 +10,7 @@ class Router {
     public function __construct() {
         foreach (HttpMethod::cases() as $method) {
             $this->routes[$method->value] = [];
-        }
+        } 
     }
 
     public function resolve($uri, $method) {
