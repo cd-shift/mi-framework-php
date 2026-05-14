@@ -18,10 +18,7 @@ class RouteTest extends TestCase{
         ];
     }
     
-    /**
-     * @dataProvider routesWithNoParameters
-     */
-    // #[DataProvider('routesWithNoParameters')]
+    #[\PHPUnit\Framework\Attributes\DataProvider('routesWithNoParameters')]
     public function test_regex_with_no_parameters(string $uri){
         $route = new Route($uri, fn () => 'test');
         $this->assertTrue($route->matches($uri));
@@ -30,9 +27,7 @@ class RouteTest extends TestCase{
         $this->assertFalse($route->matches("/random/route"));
     }
 
-    /**
-     * @dataProvider routesWithNoParameters
-     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('routesWithNoParameters')]
     public function test_regex_on_uri_that_ends_with_slash(string $uri){
         $route = new Route($uri, fn () => 'test');
         $this->assertTrue($route->matches("$uri/"));
@@ -69,10 +64,7 @@ class RouteTest extends TestCase{
         ];
     }
 
-    /**
-     * @dataProvider routesWithParameters
-    */
-    // #[DataProvider('routesWithNoParameters')]
+    #[\PHPUnit\Framework\Attributes\DataProvider('routesWithParameters')]
     public function test_regex_with_parameters(string $definition, string $uri){
         $route = new Route($definition, fn () => 'test');
         $this->assertTrue($route->matches($uri));
@@ -81,9 +73,7 @@ class RouteTest extends TestCase{
         $this->assertFalse($route->matches("/random/route"));
     }
 
-    /**
-    * @dataProvider routesWithParameters
-    */
+    #[\PHPUnit\Framework\Attributes\DataProvider('routesWithParameters')]
     public function test_parse_parameters(string $definition, string $uri, array $expectedParameters){
         $route = new Route($definition, fn () => "test");
         $this->assertTrue($route->hasParameter());

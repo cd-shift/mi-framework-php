@@ -3,9 +3,9 @@
 require_once "../vendor/autoload.php";
 
 use mi\HttpNotFoundException;
+use mi\PhpNativeServer;
 use mi\Request;
 use mi\Router;
-use mi\Server;
 
 $router = new Router();
 
@@ -35,7 +35,7 @@ try {
 
     // Devuelve una ruta ahora, no una accion
 
-    $route = $router->resolve(new Request(new Server()));
+    $route = $router->resolve(new Request(new PhpNativeServer()));
     $action = $route->action();
     print($action());
 

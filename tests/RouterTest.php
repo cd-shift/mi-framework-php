@@ -3,7 +3,9 @@
 namespace tests;
 
 use mi\HttpMethod;
+use mi\Request;
 use mi\Router;
+use tests\MockServer;
 use PHPUnit\Framework\TestCase;
 
 class RouterTest extends TestCase{
@@ -12,7 +14,7 @@ class RouterTest extends TestCase{
        $action = fn () => "test";
        $router = new Router();
        $router->get($uri, $action);
-       $route = $router->resolve($uri, HttpMethod::GET->value);
+       $route = $router->resolve(new Request(new MockServer($uri, HttpMethod::GET)));
 
        $this->assertEquals($action, $route->action());
        $this->assertEquals($uri, $route->uri());
@@ -31,9 +33,8 @@ class RouterTest extends TestCase{
         foreach ($routes as $uri => $action) {
             $router->get($uri, $action);
         }
-
         foreach ($routes as $uri => $action) {
-            $route = $router->resolve($uri, HttpMethod::GET->value);
+            $route = $router->resolve(new Request(new MockServer($uri, HttpMethod::GET)));
 
             $this->assertEquals($action, $route->action());
             $this->assertEquals($uri, $route->uri());
@@ -74,7 +75,7 @@ class RouterTest extends TestCase{
         }
 
         foreach ($routes as [$method,$uri,$action]) {
-            $route = $router->resolve($uri, $method->value);
+            $route = $router->resolve(new Request(new MockServer($uri, $method)));
 
             $this->assertEquals($action, $route->action());
             $this->assertEquals($uri, $route->uri());
