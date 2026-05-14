@@ -1,6 +1,6 @@
 <?php
 
-namespace mi;
+namespace mi\Routing;
 
 use Closure;
 use function array_combine;

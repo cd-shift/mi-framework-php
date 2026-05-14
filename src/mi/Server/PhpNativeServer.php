@@ -1,6 +1,8 @@
 <?php
 
-namespace mi;
+namespace mi\Server;
+
+use mi\Http\HttpMethod;
 
 class PhpNativeServer implements Server {
     public function requestUri(): string {

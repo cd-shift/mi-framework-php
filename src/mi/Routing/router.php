@@ -1,8 +1,11 @@
 <?php
 
-namespace mi;
+namespace mi\Routing;
 
 use Closure;
+use mi\Http\HttpMethod;
+use mi\Http\HttpNotFoundException;
+use mi\Http\Request;
 
 class Router {
     protected array $routes = [];

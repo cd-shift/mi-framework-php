@@ -1,6 +1,8 @@
 <?php
 
-namespace mi;
+namespace mi\Server;
+
+use mi\Http\HttpMethod;
 
 /*
     Interface donde se declara los metodos que debe implementar y hacer una clase concreta

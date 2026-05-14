@@ -2,10 +2,10 @@
 
 namespace tests;
 
-use mi\HttpMethod;
-use mi\Request;
-use mi\Router;
-use mi\Server;
+use mi\Http\HttpMethod;
+use mi\Http\Request;
+use mi\Routing\Router;
+use mi\Server\Server;
 use PHPUnit\Framework\TestCase;
 
 class RouterTest extends TestCase{

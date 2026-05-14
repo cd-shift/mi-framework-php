@@ -2,10 +2,10 @@
 
 require_once "../vendor/autoload.php";
 
-use mi\HttpNotFoundException;
-use mi\PhpNativeServer;
-use mi\Request;
-use mi\Router;
+use mi\Http\HttpNotFoundException;
+use mi\Server\PhpNativeServer;
+use mi\Http\Request;
+use mi\Routing\Router;
 
 $router = new Router();
 
