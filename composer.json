@@ -10,11 +10,12 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "mi\\Tests\\": "tests"
+            "tests\\": "tests"
         }
     },
     "scripts":{
-        "tests": "phpunit --color=always --testdox --display-errors --display-warnings --display-deprecations tests/"
+        "tests": "phpunit",
+        "test-coverage": "phpunit --coverage-html build/coverage/html --coverage-text=build/coverage/coverage.txt"
     },
     "authors": [
         {
