@@ -1,8 +1,9 @@
 <?php
 
-namespace mi\Server;
+namespace Server;
 
-use mi\Http\HttpMethod;
+use Http\HttpMethod;
+use Http\Response;
 
 /*
     Interface donde se declara los metodos que debe implementar y hacer una clase concreta
@@ -13,4 +14,5 @@ interface Server {
     public function requestMethod(): HttpMethod;
     public function postData(): array;
     public function queryParams(): array;
+    public function sendResponse(Response $response);
 }

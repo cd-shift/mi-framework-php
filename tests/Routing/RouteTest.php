@@ -2,7 +2,7 @@
 
 namespace tests;
 
-use mi\Routing\Route;
+use Routing\Route;
 use PHPUnit\Framework\TestCase;
 
 class RouteTest extends TestCase{

@@ -1,6 +1,6 @@
 <?php
 
-namespace mi\Http;
+namespace Http;
 
 use Exception;
 

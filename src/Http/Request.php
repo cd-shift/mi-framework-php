@@ -1,8 +1,8 @@
 <?php
 
-namespace mi\Http;
+namespace Http;
 
-use mi\Server\Server;
+use Server\Server;
 
 class Request {
     protected string $uri;

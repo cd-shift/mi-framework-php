@@ -5,7 +5,9 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "mi\\": "src/mi"
+            "Http\\": "src/Http",
+            "Routing\\": "src/Routing",
+            "Server\\": "src/Server"
         }
     },
     "autoload-dev": {
