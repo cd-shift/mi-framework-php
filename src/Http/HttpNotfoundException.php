@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Http;
 
-use Exception;
-
-class HttpNotFoundException extends Exception {
-    //
+/**
+ * Represents the "route not found" HTTP error condition.
+ */
+class HttpNotFoundException extends \Exception
+{
 }

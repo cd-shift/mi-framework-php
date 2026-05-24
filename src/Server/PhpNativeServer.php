@@ -1,41 +1,72 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Server;
 
 use Http\HttpMethod;
 use Http\Response;
 
-class PhpNativeServer implements Server {
-    public function requestUri(): string {
-        return parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+/**
+ * Server adapter backed by PHP native superglobals and header functions.
+ */
+class PhpNativeServer implements Server
+{
+    /**
+     * Reads the current request URI path from PHP runtime state.
+     */
+    public function requestUri(): string
+    {
+        return parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?: '/';
     }
 
-    public function requestMethod(): HttpMethod {
+    /**
+     * Reads the current request HTTP method from PHP runtime state.
+     */
+    public function requestMethod(): HttpMethod
+    {
         return HttpMethod::from($_SERVER['REQUEST_METHOD']);
     }
 
-    public function postData(): array {
+    /**
+     * Returns POST payload values.
+     *
+     * @return array<string, mixed>
+     */
+    public function postData(): array
+    {
         return $_POST;
     }
 
-    public function queryParams(): array {
+    /**
+     * Returns query string values.
+     *
+     * @return array<string, mixed>
+     */
+    public function queryParams(): array
+    {
         return $_GET;
     }
 
-    public function sendResponse(Response $response) {
+    /**
+     * Sends the normalized response status, headers, and body to the client.
+     *
+     * @param Response $response response to send
+     */
+    public function sendResponse(Response $response): void
+    {
         /*
-            PHP sends Content-Type headderby default, but it has to be removed if 
-            the response has not  content. Content-Type header can't be removed 
-            unless it is set to some value before.        
-        */
-        header("Content-Type: None");
-        header_remove("Content-Type");
-        
+         * PHP sends a default Content-Type header. It is removed to allow
+         * header-less responses when the response has no content.
+         */
+        header('Content-Type: None');
+        header_remove('Content-Type');
+
         $response->prepare();
         http_response_code($response->status());
         foreach ($response->headers() as $header => $value) {
-            header("$header: $value");
+            header("{$header}: {$value}");
         }
-        print ($response->content());
+        echo $response->content();
     }
 }

@@ -1,38 +1,63 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests;
 
 use Http\HttpMethod;
 use Http\Request;
+use PHPUnit\Framework\TestCase;
 use Routing\Router;
 use Server\Server;
-use PHPUnit\Framework\TestCase;
 
-class RouterTest extends TestCase{
-
-    private function createMockRequest(string $uri, HttpMethod $method): Request {
+/**
+ * Tests router registration and route resolution behavior.
+ */
+class RouterTest extends TestCase
+{
+    /**
+     * Creates a mock request with the given URI and HTTP method.
+     *
+     * @param string $uri Request URI to mock.
+     * @param HttpMethod $method Request HTTP method to mock.
+     * @return Request
+     */
+    private function createMockRequest(string $uri, HttpMethod $method): Request
+    {
         $mockServer = $this->getMockBuilder(Server::class)->getMock();
         $mockServer->method('requestUri')->willReturn($uri);
         $mockServer->method('requestMethod')->willReturn($method);
         return new Request($mockServer);
     }
 
-    public function test_resolve_basic_route_with_callback_action() {
-       $uri = '/test';
-       $action = fn () => "test";
-       $router = new Router();
-       $router->get($uri, $action);
-       $route = $router->resolve($this->createMockRequest($uri, HttpMethod::GET));
+    /**
+     * Verifies that a single registered route is resolved correctly.
+     *
+     * @return void
+     */
+    public function test_resolve_basic_route_with_callback_action(): void
+    {
+        $uri = '/test';
+        $action = fn () => 'test';
+        $router = new Router();
+        $router->get($uri, $action);
+        $route = $router->resolve($this->createMockRequest($uri, HttpMethod::GET));
 
-       $this->assertEquals($action, $route->action());
-       $this->assertEquals($uri, $route->uri());
+        $this->assertEquals($action, $route->action());
+        $this->assertEquals($uri, $route->uri());
     }
 
-    public function test_resolve_multiple_basic_routes_with_callback_action() {
+    /**
+     * Verifies that multiple registered routes are resolved correctly.
+     *
+     * @return void
+     */
+    public function test_resolve_multiple_basic_routes_with_callback_action(): void
+    {
         $routes = [
             '/test' => fn () => 'test',
             '/foo' => fn () => 'foo',
-            'bar'=> fn () => 'bar',
+            'bar' => fn () => 'bar',
             'long/nested/route' => fn () => 'long nested route',
         ];
 
@@ -49,40 +74,34 @@ class RouterTest extends TestCase{
         }
     }
 
-    public function test_resolve_multiple_basic_routes_with_callback_action_for_different_http_method() {
+    /**
+     * Verifies route resolution across multiple HTTP methods.
+     *
+     * @return void
+     */
+    public function test_resolve_multiple_basic_routes_with_callback_action_for_different_http_method(): void
+    {
         $routes = [
-            [HttpMethod::GET,'/test',fn () => "get"],
-            [HttpMethod::POST,'/test',fn () => "post"],
-            [HttpMethod::PUT,'/test',fn () => "put"],
-            [HttpMethod::PATCH,'/test',fn () => "patch"],
-            [HttpMethod::DELETE,'/test',fn () => "delete"],
+            [HttpMethod::GET, '/test', fn () => 'get'],
+            [HttpMethod::POST, '/test', fn () => 'post'],
+            [HttpMethod::PUT, '/test', fn () => 'put'],
+            [HttpMethod::PATCH, '/test', fn () => 'patch'],
+            [HttpMethod::DELETE, '/test', fn () => 'delete'],
 
-            [HttpMethod::GET,'/random/get',fn () => "get"],
-            [HttpMethod::POST,'/random/nested/post',fn () => "post"],
-            [HttpMethod::PUT,'/put/random/route',fn () => "put"],
-            [HttpMethod::PATCH,'/some/patch,route',fn () => "patch"],
-            [HttpMethod::DELETE,'/d',fn () => "delete"],
+            [HttpMethod::GET, '/random/get', fn () => 'get'],
+            [HttpMethod::POST, '/random/nested/post', fn () => 'post'],
+            [HttpMethod::PUT, '/put/random/route', fn () => 'put'],
+            [HttpMethod::PATCH, '/some/patch,route', fn () => 'patch'],
+            [HttpMethod::DELETE, '/d', fn () => 'delete'],
         ];
 
         $router = new Router();
 
-        foreach ($routes as [$method,$uri,$action]) {
-            // Version Larga
-            /*
-            match ($method) {
-                HttpMethod::GET => $router->get($uri, $action),
-                HttpMethod::POST => $router->post($uri, $action),
-                HttpMethod::PUT => $router->put($uri, $action),
-                HttpMethod::PATCH => $router->patch($uri, $action),
-                HttpMethod::DELETE => $router->delete($uri, $action),
-            };
-            */
-            // Version corta
-            // lo de strtolower devolvera "get o put o post... algo de magia"
+        foreach ($routes as [$method, $uri, $action]) {
             $router->{strtolower($method->value)}($uri, $action);
         }
 
-        foreach ($routes as [$method,$uri,$action]) {
+        foreach ($routes as [$method, $uri, $action]) {
             $route = $router->resolve($this->createMockRequest($uri, $method));
 
             $this->assertEquals($action, $route->action());

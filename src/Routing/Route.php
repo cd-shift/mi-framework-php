@@ -1,50 +1,96 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Routing;
 
-use Closure;
-use function array_combine;
-use function array_slice;
-
-class Route{
+/**
+ * Represents a route definition and URI matching rules.
+ */
+class Route
+{
+    /**
+     * Route URI pattern.
+     */
     protected string $uri;
-    protected Closure $action;
+
+    /**
+     * Route action callback.
+     */
+    protected \Closure $action;
+
+    /**
+     * Regular expression derived from the URI pattern.
+     */
     protected string $regex;
+
+    /**
+     * Ordered list of parameter names declared in the route pattern.
+     *
+     * @var array<int, string>
+     */
     protected array $params;
 
-    public function __construct(string $uri, Closure $action){
+    /**
+     * Creates a route from a URI pattern and its action callback.
+     *
+     * @param string   $uri    route URI pattern
+     * @param \Closure $action action to execute when the route matches
+     */
+    public function __construct(string $uri, \Closure $action)
+    {
         $this->uri = $uri;
         $this->action = $action;
         $this->regex = preg_replace('/\{([a-zA-Z]+)\}/', '([a-zA-Z0-9]+)', $uri);
-        // En PHP se puede omitir este, se contruye abajo tambien 
-        // $this->params = [];
         preg_match_all('/\{([a-zA-Z]+)\}/', $uri, $params);
         $this->params = $params[1];
     }
 
-    // Getters & Setters
-    // Version moderna de PHP se puede omitir get y set
-    public function uri(){
+    /**
+     * Returns the original URI pattern.
+     */
+    public function uri(): string
+    {
         return $this->uri;
     }
 
-    public function action(){
+    /**
+     * Returns the route action callback.
+     */
+    public function action(): \Closure
+    {
         return $this->action;
     }
 
-    // Funcion si una uri hace match
-    public function matches(string $uri):bool{
-        return preg_match("#^{$this->regex}/?$#", $uri);
+    /**
+     * Determines whether a URI matches this route pattern.
+     *
+     * @param string $uri request URI
+     */
+    public function matches(string $uri): bool
+    {
+        return 1 === preg_match("#^{$this->regex}/?$#", $uri);
     }
 
-    // Funcion para saber si la ruta tiene o no parametros
-    public function hasParameter():bool{
+    /**
+     * Indicates whether the route pattern declares parameters.
+     */
+    public function hasParameter(): bool
+    {
         return count($this->params) > 0;
-    } 
+    }
 
-    // Funcion que devolvera los parametros en forma de clave-valor
-    public function parseParameters(string $uri):array{
+    /**
+     * Extracts parameter values from a matching URI.
+     *
+     * @param string $uri request URI
+     *
+     * @return array<string, string>
+     */
+    public function parseParameters(string $uri): array
+    {
         preg_match("#^/?{$this->regex}$#", $uri, $arguments);
-        return array_combine($this->params, array_slice($arguments,1)) ?: [];
+
+        return \array_combine($this->params, \array_slice($arguments, 1)) ?: [];
     }
 }

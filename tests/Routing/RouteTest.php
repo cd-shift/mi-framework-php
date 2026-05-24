@@ -1,13 +1,24 @@
-<?php 
+<?php
+
+declare(strict_types=1);
 
 namespace tests;
 
-use Routing\Route;
 use PHPUnit\Framework\TestCase;
+use Routing\Route;
 
-class RouteTest extends TestCase{
-        // Data Provider
-    public static function routesWithNoParameters(){
+/**
+ * Tests route matching and parameter extraction behavior.
+ */
+class RouteTest extends TestCase
+{
+    /**
+     * Provides route definitions without path parameters.
+     *
+     * @return array<int, array{0: string}>
+     */
+    public static function routesWithNoParameters(): array
+    {
         return [
             ['/'],
             ['/test'],
@@ -17,24 +28,43 @@ class RouteTest extends TestCase{
             ['/test/another/nested/very/nested/route/'],
         ];
     }
-    
+
+    /**
+     * Verifies that static routes match expected URIs and reject invalid ones.
+     *
+     * @param string $uri Route URI definition to validate.
+     * @return void
+     */
     #[\PHPUnit\Framework\Attributes\DataProvider('routesWithNoParameters')]
-    public function test_regex_with_no_parameters(string $uri){
+    public function test_regex_with_no_parameters(string $uri): void
+    {
         $route = new Route($uri, fn () => 'test');
         $this->assertTrue($route->matches($uri));
         $this->assertFalse($route->matches("$uri/extra/path"));
         $this->assertFalse($route->matches("/some/path/$uri"));
-        $this->assertFalse($route->matches("/random/route"));
+        $this->assertFalse($route->matches('/random/route'));
     }
 
+    /**
+     * Verifies that static routes accept a trailing slash.
+     *
+     * @param string $uri Route URI definition to validate.
+     * @return void
+     */
     #[\PHPUnit\Framework\Attributes\DataProvider('routesWithNoParameters')]
-    public function test_regex_on_uri_that_ends_with_slash(string $uri){
+    public function test_regex_on_uri_that_ends_with_slash(string $uri): void
+    {
         $route = new Route($uri, fn () => 'test');
         $this->assertTrue($route->matches("$uri/"));
     }
 
-        // Data Provider
-    public static function routesWithParameters(){
+    /**
+     * Provides route definitions with parameters and expected parsed values.
+     *
+     * @return array<int, array{0: string, 1: string, 2: array<string, int|string>}>
+     */
+    public static function routesWithParameters(): array
+    {
         return [
             [
                 '/test/{test}',
@@ -64,18 +94,35 @@ class RouteTest extends TestCase{
         ];
     }
 
+    /**
+     * Verifies regex matching behavior for parameterized routes.
+     *
+     * @param string $definition Route definition with placeholders.
+     * @param string $uri URI to validate against the route.
+     * @return void
+     */
     #[\PHPUnit\Framework\Attributes\DataProvider('routesWithParameters')]
-    public function test_regex_with_parameters(string $definition, string $uri){
+    public function test_regex_with_parameters(string $definition, string $uri): void
+    {
         $route = new Route($definition, fn () => 'test');
         $this->assertTrue($route->matches($uri));
         $this->assertFalse($route->matches("$uri/extra/path"));
         $this->assertFalse($route->matches("/some/path/$uri"));
-        $this->assertFalse($route->matches("/random/route"));
+        $this->assertFalse($route->matches('/random/route'));
     }
 
+    /**
+     * Verifies parameter extraction from matching URIs.
+     *
+     * @param string $definition Route definition with placeholders.
+     * @param string $uri URI to parse.
+     * @param array<string, int|string> $expectedParameters Expected parsed values.
+     * @return void
+     */
     #[\PHPUnit\Framework\Attributes\DataProvider('routesWithParameters')]
-    public function test_parse_parameters(string $definition, string $uri, array $expectedParameters){
-        $route = new Route($definition, fn () => "test");
+    public function test_parse_parameters(string $definition, string $uri, array $expectedParameters): void
+    {
+        $route = new Route($definition, fn () => 'test');
         $this->assertTrue($route->hasParameter());
         $this->assertEquals($expectedParameters, $route->parseParameters($uri));
     }
