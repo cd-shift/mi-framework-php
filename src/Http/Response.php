@@ -133,7 +133,7 @@ class Response
     {
         return (new Response())
             ->setContentType('application/json')
-            ->setContent(json_encode(['message' => 'GET OK']))
+            ->setContent(json_encode($data))
         ;
     }
 
