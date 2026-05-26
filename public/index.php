@@ -29,8 +29,8 @@ $router = new Router();
  * @param Request $request Incoming request.
  * @return Response
  */
-$router->get('/test', function (Request $request) {
-    return Response::text('GET OK');
+$router->get('/test/{param}', function (Request $request) {
+    return Response::json($request->routeParameters());
 });
 
 /**
@@ -38,8 +38,8 @@ $router->get('/test', function (Request $request) {
  *
  * @return Response
  */
-$router->post('/test', function () {
-    return Response::text('POST OK');
+$router->post('/test', function (Request $request) {
+    return Response::json($request->queryParams());
 });
 
 /**
@@ -91,7 +91,7 @@ try {
      *
      * @var Request $request
      */
-    $request = new Request($server);
+    $request = $server->getRequest();
 
     /**
      * Resolved route for the incoming request.
@@ -99,6 +99,7 @@ try {
      * @var \Routing\Route $route
      */
     $route = $router->resolve($request);
+    $request->setRoute($route);
 
     /**
      * Route handler callback.

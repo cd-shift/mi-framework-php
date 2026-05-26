@@ -8,7 +8,6 @@ use Http\HttpMethod;
 use Http\Request;
 use PHPUnit\Framework\TestCase;
 use Routing\Router;
-use Server\Server;
 
 /**
  * Tests router registration and route resolution behavior.
@@ -24,10 +23,9 @@ class RouterTest extends TestCase
      */
     private function createMockRequest(string $uri, HttpMethod $method): Request
     {
-        $mockServer = $this->getMockBuilder(Server::class)->getMock();
-        $mockServer->method('requestUri')->willReturn($uri);
-        $mockServer->method('requestMethod')->willReturn($method);
-        return new Request($mockServer);
+        return (new Request())
+                ->setUri($uri)
+                ->setMethod($method);
     }
 
     /**

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Server;
 
 use Http\HttpMethod;
+use Http\Request;
 use Http\Response;
 
 /**
@@ -15,38 +16,15 @@ class PhpNativeServer implements Server
     /**
      * Reads the current request URI path from PHP runtime state.
      */
-    public function requestUri(): string
+    public function getRequest(): Request
     {
-        return parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?: '/';
+        return (new Request())
+                ->setUri(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH))
+                ->setMethod(HttpMethod::from($_SERVER['REQUEST_METHOD']))
+                ->setPostData($_POST)
+                ->setQueryParams($_GET);
     }
 
-    /**
-     * Reads the current request HTTP method from PHP runtime state.
-     */
-    public function requestMethod(): HttpMethod
-    {
-        return HttpMethod::from($_SERVER['REQUEST_METHOD']);
-    }
-
-    /**
-     * Returns POST payload values.
-     *
-     * @return array<string, mixed>
-     */
-    public function postData(): array
-    {
-        return $_POST;
-    }
-
-    /**
-     * Returns query string values.
-     *
-     * @return array<string, mixed>
-     */
-    public function queryParams(): array
-    {
-        return $_GET;
-    }
 
     /**
      * Sends the normalized response status, headers, and body to the client.

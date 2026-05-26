@@ -3,8 +3,7 @@
 declare(strict_types=1);
 
 namespace Server;
-
-use Http\HttpMethod;
+use Http\Request;
 use Http\Response;
 
 /**
@@ -13,28 +12,10 @@ use Http\Response;
 interface Server
 {
     /**
-     * Returns the current request URI path.
+     * Get request sent by client.
+     * @return Request
      */
-    public function requestUri(): string;
-
-    /**
-     * Returns the current request HTTP method.
-     */
-    public function requestMethod(): HttpMethod;
-
-    /**
-     * Returns request payload data.
-     *
-     * @return array<string, mixed>
-     */
-    public function postData(): array;
-
-    /**
-     * Returns request query parameters.
-     *
-     * @return array<string, mixed>
-     */
-    public function queryParams(): array;
+    public function getRequest(): Request;
 
     /**
      * Sends a response to the client.

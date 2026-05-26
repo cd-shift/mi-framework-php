@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Http;
 
-use Server\Server;
+use Routing\Route;
 
 /**
  * Stores normalized request data produced by a server adapter.
@@ -15,6 +15,12 @@ class Request
      * Request URI path.
      */
     protected string $uri;
+
+    /**
+     * Route matched by URI
+     * @var Route
+     */
+    protected Route $route;
 
     /**
      * HTTP method used by the request.
@@ -36,19 +42,6 @@ class Request
     protected array $query;
 
     /**
-     * Builds a request object from the current server adapter state.
-     *
-     * @param Server $server server adapter used to read request data
-     */
-    public function __construct(Server $server)
-    {
-        $this->uri = $server->requestUri();
-        $this->method = $server->requestMethod();
-        $this->data = $server->postData();
-        $this->query = $server->queryParams();
-    }
-
-    /**
      * Returns the normalized request URI path.
      */
     public function uri(): string
@@ -57,11 +50,53 @@ class Request
     }
 
     /**
+     * Set request URI.
+     * @param string $uri
+     * @return self
+     */
+    public function setUri(string $uri): self 
+    {
+        $this->uri = $uri;
+        return $this;
+    }
+
+    /**
+     * Get route matched by the URI of this request
+     * @return Route
+     */
+    public function route(): Route
+    {
+        return $this->route;
+    }
+
+    /**
+     * Set route for this request.
+     * @param Route $route
+     * @return self
+     */
+    public function setRoute(Route $route): self 
+    {
+        $this->route = $route;
+        return $this;
+    }
+
+    /**
      * Returns the request HTTP method.
      */
     public function method(): HttpMethod
     {
         return $this->method;
+    }
+
+    /**
+     * Set HTTP method
+     * @param HttpMethod $method
+     * @return self
+     */
+    public function setMethod(HttpMethod $method): self
+    {
+        $this->method = $method;
+        return $this;
     }
 
     /**
@@ -75,6 +110,17 @@ class Request
     }
 
     /**
+     * Set POST data
+     * @param array $data
+     * @return self
+     */
+    public function setPostData(array $data): self
+    {
+        $this->data = $data;
+        return $this;
+    }
+
+    /**
      * Returns query string parameters.
      *
      * @return array<string, mixed>
@@ -82,5 +128,21 @@ class Request
     public function queryParams(): array
     {
         return $this->query;
+    }
+
+    /**
+     * Set query parameters.
+     * @param array $query
+     * @return self
+     */
+    public function setQueryParams(array $query): self
+    {
+        $this->query = $query;
+        return $this;
+    }
+
+    public function routeParameters(?string $key = null): array
+    {
+        return $this->route->parseParameters($this->uri);
     }
 }
