@@ -104,9 +104,12 @@ class Request
      *
      * @return array<string, mixed>
      */
-    public function data(): array
+    public function data(?string $key = null): array|string|null
     {
-        return $this->data;
+        if( is_null($key) ){
+            return $this->data;    
+        }
+        return $this->data[$key] ?? null;
     }
 
     /**
@@ -125,9 +128,12 @@ class Request
      *
      * @return array<string, mixed>
      */
-    public function queryParams(): array
+    public function query(?string $key = null): string|array|null
     {
-        return $this->query;
+        if( is_null($key) ){
+            return $this->query;
+        }
+        return $this->query[$key] ?? null;
     }
 
     /**
@@ -141,8 +147,13 @@ class Request
         return $this;
     }
 
-    public function routeParameters(?string $key = null): array
+    public function routeParameters(?string $key = null): string|array|null
     {
-        return $this->route->parseParameters($this->uri);
+        $parameters = $this->route->parseParameters($this->uri); 
+        if ( is_null($key) ){
+            return $parameters;
+        }
+        return $parameters[$key] ?? null;
+        
     }
 }

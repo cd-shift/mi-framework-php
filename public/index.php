@@ -39,7 +39,7 @@ $router->get('/test/{param}', function (Request $request) {
  * @return Response
  */
 $router->post('/test', function (Request $request) {
-    return Response::json($request->queryParams());
+    return Response::json($request->query());
 });
 
 /**
