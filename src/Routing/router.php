@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Routing;
 
+use Closure;
 use Http\HttpMethod;
 use Http\HttpNotFoundException;
 use Http\Request;
@@ -56,11 +57,22 @@ class Router
         $response = $action($request);
 
         if ($route->hasMiddlewares()) {
-            foreach ($route->middlewares() as $middleware) {
-                $response = $middleware->handle($request, $response);
-            }
+            return $this->runMiddlewares($request, $route->middlewares(), $action);
         }
         return $response;
+    }
+
+    protected function runMiddlewares(Request $request, array $middlewares, Closure $target): Response
+    {
+        if (count($middlewares) === 0) 
+        {
+            return $target($request);
+        }
+        return $middlewares[0]->handle( // Recursividad para ejecutar los middlewares
+            $request, 
+            fn () => $this->runMiddlewares($request, array_slice($middlewares, 1),
+            $target)
+        );
     }
 
     /**
