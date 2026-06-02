@@ -10,18 +10,11 @@ declare(strict_types=1);
  */
 require_once '../vendor/autoload.php';
 
-use Http\HttpNotFoundException;
+use Framework\App;
 use Http\Request;
 use Http\Response;
-use Routing\Router;
-use Server\PhpNativeServer;
 
-/**
- * Main router instance used to register route handlers.
- *
- * @var Router $router
- */
-$router = new Router();
+$app = App::bootstrap();
 
 /**
  * Handles GET /test.
@@ -29,7 +22,7 @@ $router = new Router();
  * @param Request $request Incoming request.
  * @return Response
  */
-$router->get('/test/{param}', function (Request $request) {
+$app->router->get('/test/{param}', function (Request $request) {
     return Response::json($request->routeParameters());
 });
 
@@ -38,7 +31,7 @@ $router->get('/test/{param}', function (Request $request) {
  *
  * @return Response
  */
-$router->post('/test', function (Request $request) {
+$app->router->post('/test', function (Request $request) {
     return Response::json($request->query());
 });
 
@@ -48,79 +41,8 @@ $router->post('/test', function (Request $request) {
  * @param Request $request Incoming request.
  * @return Response
  */
-$router->get('/redirect', function (Request $request) {
+$app->router->get('/redirect', function (Request $request) {
     return Response::redirect('/test');
 });
 
-/**
- * Handles PUT /test.
- *
- * @return string
- */
-$router->put('/test', function () {
-    return "PUT OK\n";
-});
-
-/**
- * Handles PATCH /test.
- *
- * @return string
- */
-$router->patch('/test', function () {
-    return "PATCH OK\n";
-});
-
-/**
- * Handles DELETE /test.
- *
- * @return string
- */
-$router->delete('/test', function () {
-    return "DELETE OK\n";
-});
-
-/**
- * Native server adapter instance.
- *
- * @var PhpNativeServer $server
- */
-$server = new PhpNativeServer();
-try {
-    /**
-     * Normalized request value object.
-     *
-     * @var Request $request
-     */
-    $request = $server->getRequest();
-
-    /**
-     * Resolved route for the incoming request.
-     *
-     * @var \Routing\Route $route
-     */
-    $route = $router->resolve($request);
-    $request->setRoute($route);
-
-    /**
-     * Route handler callback.
-     *
-     * @var \Closure $action
-     */
-    $action = $route->action();
-
-    /**
-     * Handler result sent back to the server adapter.
-     *
-     * @var mixed $response
-     */
-    $response = $action($request);
-    $server->sendResponse($response);
-} catch (HttpNotFoundException $e) {
-    /**
-     * Fallback 404 response when no route matches.
-     *
-     * @var Response $response
-     */
-    $response = Response::text('Not Found Friend :/')->setStatus(404);
-    $server->sendResponse($response);
-}
+$app->run();

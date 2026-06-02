@@ -54,7 +54,7 @@ class Request
      * @param string $uri
      * @return self
      */
-    public function setUri(string $uri): self 
+    public function setUri(string $uri): self
     {
         $this->uri = $uri;
         return $this;
@@ -74,7 +74,7 @@ class Request
      * @param Route $route
      * @return self
      */
-    public function setRoute(Route $route): self 
+    public function setRoute(Route $route): self
     {
         $this->route = $route;
         return $this;
@@ -106,8 +106,8 @@ class Request
      */
     public function data(?string $key = null): array|string|null
     {
-        if( is_null($key) ){
-            return $this->data;    
+        if (is_null($key)) {
+            return $this->data;
         }
         return $this->data[$key] ?? null;
     }
@@ -130,7 +130,7 @@ class Request
      */
     public function query(?string $key = null): string|array|null
     {
-        if( is_null($key) ){
+        if (is_null($key)) {
             return $this->query;
         }
         return $this->query[$key] ?? null;
@@ -149,11 +149,11 @@ class Request
 
     public function routeParameters(?string $key = null): string|array|null
     {
-        $parameters = $this->route->parseParameters($this->uri); 
-        if ( is_null($key) ){
+        $parameters = $this->route->parseParameters($this->uri);
+        if (is_null($key)) {
             return $parameters;
         }
         return $parameters[$key] ?? null;
-        
+
     }
 }

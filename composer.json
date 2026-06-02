@@ -5,6 +5,8 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
+            "Framework\\": "src/",
+            "Container\\": "src/Container",
             "Http\\": "src/Http",
             "Routing\\": "src/Routing",
             "Server\\": "src/Server"

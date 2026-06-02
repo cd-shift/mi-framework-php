@@ -60,9 +60,9 @@ class Response
      * Sets or overwrites a response header.
      *
      * @param string $header header name
-     * @param string $value  header value
+     * @param string|int|float|bool $value header value
      */
-    public function setHeader(string $header, string $value): self
+    public function setHeader(string $header, string|int $value): self
     {
         $this->headers[strtolower($header)] = $value;
 

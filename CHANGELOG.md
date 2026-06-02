@@ -1,224 +1,91 @@
-# Registro de Cambios
+# Changelog
 
-Documentación de cambios del proyecto, su propósito y funcionamiento.
+Todos los cambios importantes de este proyecto se documentan aquí.
 
----
+## [2026-05-27]
 
-## [2026-04-23] Reorganización y Composer
+### Cambiado
+- `Request::data()`, `Request::query()` y `Request::routeParameters()` ahora permiten devolver un valor específico por clave además del arreglo completo.
+- Ajustes en `public/index.php` para mantener consistencia con el flujo actual de request/response.
+- Nuevas pruebas para validar acceso por clave en `Request`.
 
-### Cambios
+## [2026-05-25]
 
-- Archivos reorganizados en `src/` y `public/` siguiendo estructura PSR-4
-- Agregado `composer.json` con autoload PSR-4
-- Agregado `composer install` para dependencias
-- Agregado `AGENTS.md` con configuración para agentes IA
-- Agregado `.agents/skills/` con skills de desarrollo PHP
-- Agregado `.github/workflows/opencode.yml` para CI/CD
+### Agregado
+- Pruebas unitarias para `Request` en `tests/HTTP/RequestTest.php`.
 
-### Estructura Actual
+### Cambiado
+- Refactor de `Request` y contratos del adaptador de servidor.
+- Reorganización de tests de `Response` a `tests/HTTP/ResponseTest.php`.
 
-```
-src/                      # Código fuente (PSR-4)
-public/                  # Archivos públicos (raíz del servidor)
-.agents/skills/          # Skills del proyecto
-.github/workflows/       # GitHub Actions
-vendor/                 # Dependencias Composer
-composer.json           # Autoload PSR-4
-```
+## [2026-05-24]
 
----
+### Agregado
+- Configuración de `PHP-CS-Fixer` en `.php-cs-fixer.dist.php`.
 
-## Archivos del Proyecto
+### Cambiado
+- Normalización de estilo en código fuente y pruebas.
+- Scripts de calidad en `composer.json` (`cs:check`, `cs:fix`).
 
-### 1. `index.php` - Punto de Entrada
+## [2026-05-21]
 
-**¿Qué es?**
-Archivo principal que se ejecuta cuando alguien accede al servidor.
+### Cambiado
+- Mejoras en factorías de `Response` (`json`, `text`, `redirect`).
 
-**¿Por qué existe?**
-Es el punto de entrada de toda aplicación PHP. Cuando el servidor recibe una petición, ejecuta este archivo primero.
+## [2026-05-14]
 
-**¿Cómo funciona?**
+### Agregado
+- Clase `Http\Response` con soporte de estado, headers, contenido y método `prepare()`.
 
-```php
-require "./router.php";          // Carga el archivo del router
+### Cambiado
+- Reorganización final de namespaces y carpetas a:
+  - `src/Http`
+  - `src/Routing`
+  - `src/Server`
+- Migración de pruebas a estructura por dominio (`tests/HTTP`, `tests/Routing`).
 
-$router = new Router();           // Crea instancia del router
+## [2026-05-13]
 
-// Registra rutas - define qué código ejecutar según la URL
-$router->get('/test', function () {
-    return "GET OK";
-});
+### Agregado
+- Clase `Http\Request`.
+- Interfaz `Server\Server` y adaptador `Server\PhpNativeServer`.
+- Configuración de PHPUnit en `phpunit.xml`.
 
-$router->post('/test', function () {
-    return "POST OK";
-});
+### Cambiado
+- Router y pruebas actualizados para trabajar con `Request` y el adaptador de servidor.
 
-// Intenta encontrar y ejecutar la ruta correspondiente
-try {
-    $action = $router->resolve();  // Busca la ruta
-    print($action());                // Ejecuta y muestra el resultado
-} catch (HttpNotFoundException $e) { // Si no existe la ruta
-    print("NOT FOUND");
-    http_response_code(404);
-}
-```
+## [2026-05-12]
 
----
+### Agregado
+- Pruebas parametrizadas para `Route`.
 
-### 2. `router.php` - Sistema de Enrutamiento
+### Cambiado
+- Mejoras al matching de rutas y parseo de parámetros.
 
-**¿Qué es?**
-Clase que gestiona el registro y resolución de rutas HTTP.
+## [2026-04-27]
 
-**¿Por qué existe?**
-Es el "cerebro" de la aplicación. Sin un router, no hay forma de saber qué código ejecutar para cada URL.
+### Agregado
+- Clase `Routing\Route`.
+- Pruebas iniciales para `Router`.
+- `composer.lock`.
 
-**¿Cómo funciona?**
+### Cambiado
+- Soporte de rutas con parámetros en el router.
 
-```php
-class Router {
-    protected array $routes = [];  // Almacena todas las rutas registradas
+## [2026-04-23]
 
-    // Constructor: inicializa un array para cada método HTTP
-    public function __construct() {
-        foreach (HttpMethod::cases() as $method) {
-            $this->routes[$method->value] = [];
-        }
-    }
+### Agregado
+- `composer.json` con autoload PSR-4.
+- Front controller en `public/index.php`.
+- Configuración base de proyecto para agentes en `.agents/skills/`.
 
-    // GET: registra ruta para método GET
-    public function get(string $uri, callable $action) {
-        $this->routes[HttpMethod::GET->value][$uri] = $action;
-    }
+### Cambiado
+- Reorganización de archivos bajo `src/`.
 
-    // POST: registra ruta para método POST
-    public function post(string $uri, callable $action) {
-        $this->routes[HttpMethod::POST->value][$uri] = $action;
-    }
+### Eliminado
+- `index.php` en raíz (reemplazado por `public/index.php`).
 
-    // Resolve: encuentra la ruta que coincide con la petición actual
-    public function resolve() {
-        $method = $_SERVER["REQUEST_METHOD"];   // Ej: "GET"
-        $uri = $_SERVER["REQUEST_URI"];          // Ej: "/test"
+## [2026-04-21]
 
-        // Busca si existe una ruta registrada para esa combinación
-        $action = $this->routes[$method][$uri] ?? null;
-
-        // Si no existe, lanza excepción 404
-        if (is_null($action)) {
-            throw new HttpNotFoundException();
-        }
-
-        return $action;  // Retorna la función a ejecutar
-    }
-}
-```
-
----
-
-### 3. `HttpMethod.php` - Enum de Métodos HTTP
-
-**¿Qué es?**
-Enumeración que define los métodos HTTP soportados.
-
-**¿Por qué existe?**
-- Evita errores de tipeo (escribir "GET" vs "GOT")
-- Mejora el autocompletado en el IDE
-- Centraliza los métodos válidos en un solo lugar
-
-**¿Cómo funciona?**
-
-```php
-enum HttpMethod: string {
-    case GET = "GET";     // "GET" es el valor real
-    case POST = "POST";
-    case PUT = "PUT";
-    case PATCH = "PATCH";
-    case DELETE = "DELETE";
-}
-```
-
-Uso: `HttpMethod::GET->value` retorna `"GET"`.
-
----
-
-### 4. `HttpNotFoundException.php` - Excepción 404
-
-**¿Qué es?**
-Excepción personalizada para manejar rutas no encontradas.
-
-**¿Por qué existe?**
-Permite diferenciar entre errores generales y el caso específico de "ruta no encontrada" (404).
-
-**¿Cómo funciona?**
-
-```php
-class HttpNotFoundException extends Exception {
-    // Solo hereda el comportamiento de Exception
-    // No necesita código adicional por ahora
-}
-```
-
----
-
-### 5. `README.md` - Documentación General
-
-**¿Qué es?**
-Archivo de documentación principal del proyecto.
-
-**¿Por qué existe?**
-Proporciona contexto a cualquier persona que vea el repositorio: qué es el proyecto, cómo instalarlo, su estado actual, y próximos pasos.
-
----
-
-### 6. `AGENTS.md` - Guía para Agentes IA
-
-**¿Qué es?**
-Archivo de configuración para sesiones de OpenCode/IA.
-
-**¿Por qué existe?**
-Ayuda a agentes de IA a entender las particularidades del proyecto (cómo correrlo, estructura, limitaciones) sin necesidad de explicarlo en cada sesión.
-
----
-
-## Flujo de Ejecución
-
-```
-Usuario accede a http://localhost:8000/test (GET)
-
-        ↓
-    
-index.php se ejecuta
-
-        ↓
-    
-$router->resolve() es llamado
-
-        ↓
-    
-$_SERVER["REQUEST_METHOD"] = "GET"
-$_SERVER["REQUEST_URI"] = "/test"
-
-        ↓
-    
-Busca en $routes["GET"]["/test"]
-
-        ↓
-    
-Encuentra la función anónima
-return "GET OK";
-
-        ↓
-    
-print() muestra "GET OK" en el navegador
-```
-
----
-
-## Notas Técnicas
-
-- **Sin Composer**: Los archivos se cargan con `require` manual
-- **Sin dependencias**: Todo el código es propio
-- **Rutas simples**: Solo acepta URLs exactas (sin wildcards ni parámetros)
-- **PSR-4**: No implementado aún (usa require manual)
+### Agregado
+- Commit inicial: router básico, enum de métodos HTTP y excepción para 404.

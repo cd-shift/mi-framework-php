@@ -1,46 +1,72 @@
 # Mi Framework PHP
 
-Proyecto académico para aprender cómo funciona un framework PHP por dentro, construyéndolo desde cero.
+Framework PHP minimalista para aprender internals de routing y ciclo HTTP.
 
-## Objetivo
+## Estado Actual
 
-Entender los conceptos fundamentales de un framework web:
-- Enrutamiento (routing)
-- Request/Response cycle
-- Arquitectura MVC
-- Y más conceptos esenciales
+Proyecto funcional en fase temprana con:
+- Autoload PSR-4 vía Composer
+- Router con soporte para `GET`, `POST`, `PUT`, `PATCH`, `DELETE`
+- Rutas con parámetros (`/test/{param}`)
+- Objetos `Request` y `Response`
+- Adaptador de servidor nativo (`PhpNativeServer`)
+- Suite de pruebas unitarias con PHPUnit
 
-## Estado
+## Requisitos
 
-En desarrollo - etapa inicial.
+- PHP `^8.2`
+- Composer
 
 ## Instalación
 
 ```bash
-# Instalar dependencias (cuando existan)
 composer install
-
-# Iniciar servidor de desarrollo
-php -S localhost:8000
 ```
 
-## Estructura
+## Ejecución local
 
-```
-src/              # Código fuente del framework
-index.php         # Punto de entrada
-router.php        # Sistema de enrutamiento
+```bash
+php -S localhost:8000 -t public
 ```
 
-## Próximos pasos
+## Pruebas y calidad
 
-- [ ] Implementar Request/Response
-- [ ] Completar sistema de rutas
-- [ ] Añadir estructura MVC
-- [ ] Agregar tests
+```bash
+composer tests
+composer cs:check
+composer cs:fix
+```
 
-## Recursos de referencia
+## Estructura del proyecto
+
+```text
+public/
+  index.php                # Front controller
+src/
+  Http/
+    HttpMethod.php
+    HttpNotfoundException.php
+    Request.php
+    Response.php
+  Routing/
+    Route.php
+    router.php
+  Server/
+    PhpNativeServer.php
+    Server.php
+tests/
+  HTTP/
+  Routing/
+```
+
+## Próximos objetivos sugeridos
+
+- Implementar pipeline de middleware
+- Mejorar manejo de errores HTTP (`404`, `405`, `500`)
+- Aumentar cobertura de casos borde en tests
+- Estandarizar nombre de `router.php` a `Router.php`
+
+## Referencias
 
 - [PSR-4: Autoloading](https://www.php-fig.org/psr/psr-4/)
 - [PSR-7: HTTP Messages](https://www.php-fig.org/psr/psr-7/)
-- [Laravel Router](https://github.com/laravel/framework/tree/master/src/Illuminate/Routing) - inspiraciones
