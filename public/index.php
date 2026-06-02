@@ -11,8 +11,10 @@ declare(strict_types=1);
 require_once '../vendor/autoload.php';
 
 use Framework\App;
+use Http\Middleware;
 use Http\Request;
 use Http\Response;
+use Routing\Route;
 
 $app = App::bootstrap();
 
@@ -44,5 +46,19 @@ $app->router->post('/test', function (Request $request) {
 $app->router->get('/redirect', function (Request $request) {
     return Response::redirect('/test');
 });
+
+class AuthMiddleware implements Middleware
+{
+    public function handle(Request $request, Closure $next): Response
+    {
+        if ($request->headers('Authorization') != 'test') {
+            return Response::json(['message' => 'Not authenticated'])->setStatus(401);
+        }
+        return $next();
+    }
+}
+
+Route::get('/middlewares', fn (Request $request) => Response::json(['Message' => 'Ok']))
+        ->setMiddlewares([]);
 
 $app->run();

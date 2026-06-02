@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Routing;
 
+use Closure;
+use Container\Container;
+use Framework\App;
+
 /**
  * Represents a route definition and URI matching rules.
  */
@@ -30,6 +34,8 @@ class Route
      * @var array<int, string>
      */
     protected array $params;
+
+    protected array $middlewares = [];
 
     /**
      * Creates a route from a URI pattern and its action callback.
@@ -62,6 +68,22 @@ class Route
         return $this->action;
     }
 
+    public function middlewares(): array
+    {
+        return $this->middlewares;
+    }
+
+    public function setMiddlewares(array $middlewares): self
+    {
+        $this->middlewares = array_map(fn ($middleware) => new $middleware(), $middlewares);
+        return $this;
+    }
+
+    public function hasMiddlewares(): bool
+    {
+        return count($this->middlewares) > 0;
+    }
+
     /**
      * Determines whether a URI matches this route pattern.
      *
@@ -92,5 +114,10 @@ class Route
         preg_match("#^/?{$this->regex}$#", $uri, $arguments);
 
         return \array_combine($this->params, \array_slice($arguments, 1)) ?: [];
+    }
+
+    public static function get(string $uri, Closure $action): Route
+    {
+        return Container::resolve(App::class)->router->get($uri, $action);
     }
 }

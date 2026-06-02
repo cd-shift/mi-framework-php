@@ -31,27 +31,7 @@ class App
     {
         $server = new PhpNativeServer();
         try {
-            /**
-             * Resolved route for the incoming request.
-             *
-             * @var \Routing\Route $route
-             */
-            $route = $this->router->resolve($this->request);
-            $this->request->setRoute($route);
-
-            /**
-             * Route handler callback.
-             *
-             * @var \Closure $action
-             */
-            $action = $route->action();
-
-            /**
-             * Handler result sent back to the server adapter.
-             *
-             * @var mixed $response
-             */
-            $response = $action($this->request);
+            $response = $this->router->resolve($this->request);
             $server->sendResponse($response);
         } catch (HttpNotFoundException $e) {
             /**
