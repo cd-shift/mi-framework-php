@@ -142,4 +142,37 @@ class RouterTest extends TestCase
         $this->assertEquals('middleware1', $response->headers('X-Middleware1'));
         $this->assertEquals('middleware2', $response->headers('X-Middleware2'));
     }
+
+    public function test_middleware_stack_can_be_stopped(): void
+    {
+        $middleware1 = new class () {
+            public function handle(Request $request, Closure $next): Response
+            {
+                return Response::text('middleware1 stack stopped');
+            }
+        };
+
+        $middleware2 = new class () {
+            public function handle(Request $request, Closure $next): Response
+            {
+                $response = $next($request);
+                $response->setHeader('X-Middleware2', 'middleware2');
+                return $response;
+            }
+        };
+
+        $router = new Router();
+        $uri = '/test';
+        $notExpectedResponse = Response::text('middleware2 should not be executed');
+        $action = fn ($request) => $notExpectedResponse;
+
+        $router->get($uri, $action)->setMiddlewares([$middleware1, $middleware2]);
+
+        $request = $this->createMockRequest($uri, HttpMethod::GET);
+        $response = $router->resolve($request);
+
+        //$this->assertNotEquals($notExpectedResponse, $response);
+        $this->assertEquals('middleware1 stack stopped', $response->content());
+        $this->assertNull($response->headers('X-Middleware2'));
+    }
 }
