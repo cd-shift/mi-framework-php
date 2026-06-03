@@ -109,6 +109,11 @@ class RouterTest extends TestCase
         }
     }
 
+    /**
+     * Verifies that middleware handlers can enrich the response chain.
+     *
+     * @return void
+     */
     public function test_run_middlewares(): void
     {
         $middleware1 = new class () {
@@ -143,6 +148,11 @@ class RouterTest extends TestCase
         $this->assertEquals('middleware2', $response->headers('X-Middleware2'));
     }
 
+    /**
+     * Verifies that a middleware can short-circuit the remaining stack.
+     *
+     * @return void
+     */
     public function test_middleware_stack_can_be_stopped(): void
     {
         $middleware1 = new class () {

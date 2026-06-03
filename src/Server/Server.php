@@ -13,7 +13,8 @@ use Http\Response;
 interface Server
 {
     /**
-     * Get request sent by client.
+     * Returns the request sent by the client.
+     *
      * @return Request
      */
     public function getRequest(): Request;
@@ -21,7 +22,8 @@ interface Server
     /**
      * Sends a response to the client.
      *
-     * @param Response $response response to send
+     * @param Response $response Response to send.
+     * @return void
      */
     public function sendResponse(Response $response): void;
 }

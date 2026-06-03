@@ -15,22 +15,24 @@ class PhpNativeServer implements Server
 {
     /**
      * Reads the current request URI path from PHP runtime state.
+     *
+     * @return Request
      */
     public function getRequest(): Request
     {
         return (new Request())
-                ->setUri(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH))
+                ->setUri(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?: '/')
                 ->setMethod(HttpMethod::from($_SERVER['REQUEST_METHOD']))
                 ->setHeaders(getallheaders())
                 ->setPostData($_POST)
                 ->setQueryParams($_GET);
     }
 
-
     /**
      * Sends the normalized response status, headers, and body to the client.
      *
-     * @param Response $response response to send
+     * @param Response $response Response to send.
+     * @return void
      */
     public function sendResponse(Response $response): void
     {

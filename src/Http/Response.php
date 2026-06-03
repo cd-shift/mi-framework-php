@@ -28,6 +28,8 @@ class Response
 
     /**
      * Returns the current status code.
+     *
+     * @return int
      */
     public function status(): int
     {
@@ -37,7 +39,8 @@ class Response
     /**
      * Sets the status code.
      *
-     * @param int $status HTTP status code
+     * @param int $status HTTP status code.
+     * @return self
      */
     public function setStatus(int $status): self
     {
@@ -49,7 +52,8 @@ class Response
     /**
      * Returns all response headers.
      *
-     * @return array<string, string>
+     * @param string|null $key Header name to fetch.
+     * @return array<string, string>|string|null
      */
     public function headers(?string $key = null): array|string|null
     {
@@ -62,8 +66,9 @@ class Response
     /**
      * Sets or overwrites a response header.
      *
-     * @param string $header header name
-     * @param string|int|float|bool $value header value
+     * @param string $header Header name.
+     * @param string|int $value Header value.
+     * @return self
      */
     public function setHeader(string $header, string|int $value): self
     {
@@ -75,7 +80,8 @@ class Response
     /**
      * Removes a response header if it exists.
      *
-     * @param string $header header name
+     * @param string $header Header name.
+     * @return void
      */
     public function removeHeader(string $header): void
     {
@@ -85,7 +91,8 @@ class Response
     /**
      * Sets the response content type header.
      *
-     * @param string $value MIME type value
+     * @param string $value MIME type value.
+     * @return self
      */
     public function setContentType(string $value): self
     {
@@ -96,6 +103,8 @@ class Response
 
     /**
      * Returns the response body content.
+     *
+     * @return string|null
      */
     public function content(): ?string
     {
@@ -105,7 +114,8 @@ class Response
     /**
      * Sets the response body content.
      *
-     * @param string $content response body
+     * @param string $content Response body.
+     * @return self
      */
     public function setContent(string $content): self
     {
@@ -116,6 +126,8 @@ class Response
 
     /**
      * Normalizes response headers based on the current content.
+     *
+     * @return void
      */
     public function prepare(): void
     {
@@ -130,7 +142,8 @@ class Response
     /**
      * Creates a JSON response.
      *
-     * @param array<string, mixed> $data payload data
+     * @param array<string, mixed> $data Payload data.
+     * @return self
      */
     public static function json(array $data): self
     {
@@ -143,7 +156,8 @@ class Response
     /**
      * Creates a plain text response.
      *
-     * @param string $text response text
+     * @param string $text Response text.
+     * @return self
      */
     public static function text(string $text): self
     {
@@ -156,7 +170,8 @@ class Response
     /**
      * Creates a redirect response.
      *
-     * @param string $uri destination URI
+     * @param string $uri Destination URI.
+     * @return self
      */
     public static function redirect(string $uri): self
     {

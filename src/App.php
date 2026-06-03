@@ -12,34 +12,54 @@ use Routing\Router;
 use Server\PhpNativeServer;
 use Server\Server;
 
+/**
+ * Coordinates application bootstrapping and request execution.
+ */
 class App
 {
+    /**
+     * Router instance used to register and resolve routes.
+     */
     public Router $router;
+
+    /**
+     * Current normalized HTTP request.
+     */
     public Request $request;
+
+    /**
+     * Server adapter responsible for IO with the client.
+     */
     public Server $server;
 
-    public static function bootstrap() // Inicializacion de la Aplicacion
+    /**
+     * Bootstraps the application singleton with its core services.
+     *
+     * @return self
+     */
+    public static function bootstrap(): self
     {
-        $app = Container::singleton(App::class); //(self::class)
+        $app = Container::singleton(App::class);
         $app->router = new Router();
         $app->server = new PhpNativeServer();
         $app->request = $app->server->getRequest();
+
         return $app;
     }
 
-    public function run()
+    /**
+     * Resolves the current request and sends the resulting response.
+     *
+     * @return void
+     */
+    public function run(): void
     {
-        $server = new PhpNativeServer();
         try {
             $response = $this->router->resolve($this->request);
-            $server->sendResponse($response);
+            $this->server->sendResponse($response);
         } catch (HttpNotFoundException $e) {
-            /**
-             * Fallback 404 response when no route matches.
-             *
-             * @var Response $response
-             */
             $response = Response::text('Not Found Friend :/')->setStatus(404);
+
             $this->server->sendResponse($response);
         }
     }

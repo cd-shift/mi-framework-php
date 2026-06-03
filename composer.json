@@ -18,9 +18,11 @@
         }
     },
     "scripts":{
-        "tests": "phpunit --colors=always --testdox --display-errors --display-warnings --display-deprecations --display-notices",
+        "tests": "phpunit --colors=always --testdox --display-errors --display-warnings --display-deprecations --display-notices --debug",
+        "tests:quick": "phpunit",
+        "tests:one": "phpunit",
         "test-coverage": "phpunit --coverage-html build/coverage/html --coverage-text=build/coverage/coverage.txt",
-        "docs:generate": "vendor/bin/phpdoc run -d src -d public -d tests -t build/docs -i 'vendor/*' -i 'pruebas/*' -i 'build/*' -i 'docs/*'",
+        "docs:generate": "vendor/bin/phpdoc run -d src -d tests -t build/docs -i 'vendor/*' -i 'pruebas/*' -i 'build/*' -i 'docs/*' -i 'public/*'",
         "cs:check": "vendor/bin/php-cs-fixer fix --allow-risky=yes --sequential --dry-run --diff --verbose",
         "cs:fix": "vendor/bin/php-cs-fixer fix --allow-risky=yes --sequential --verbose"
     },

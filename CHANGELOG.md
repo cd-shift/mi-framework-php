@@ -2,6 +2,25 @@
 
 Todos los cambios importantes de este proyecto se documentan aquí.
 
+## [2026-06-03]
+
+### Agregado
+- `Framework\App` como punto central de bootstrap y ejecución.
+- `Container\Container` para resolución simple de singletons.
+- Contrato `Http\Middleware` y soporte de middlewares por ruta.
+- Pruebas HTTP para `Request` y `Response`.
+- Documentación técnica regenerada con `phpDocumentor` para `src/` y `tests/`.
+
+### Cambiado
+- `Request` ahora modela headers, query params, payload y route parameters de forma más completa.
+- `Router` ahora separa resolución de ruta y ejecución de pipeline de middlewares.
+- `README.md` actualizado para reflejar la arquitectura y comandos actuales del proyecto.
+- `src/Routing/router.php` se alinea con PSR-4 y pasa a `src/Routing/Router.php`.
+- Normalización y ampliación de DocBlocks en clases, interfaces, métodos y pruebas.
+
+### Calidad
+- Scripts de pruebas, estilo y documentación consolidados en `composer.json`.
+
 ## [2026-05-27]
 
 ### Cambiado

@@ -9,7 +9,7 @@ use Container\Container;
 use Framework\App;
 
 /**
- * Represents a route definition and URI matching rules.
+ * Represents a route definition, its URI matching rules, and middleware stack.
  */
 class Route
 {
@@ -35,6 +35,11 @@ class Route
      */
     protected array $params;
 
+    /**
+     * Middleware instances that should run before the route action.
+     *
+     * @var array<int, object>
+     */
     protected array $middlewares = [];
 
     /**
@@ -54,6 +59,8 @@ class Route
 
     /**
      * Returns the original URI pattern.
+     *
+     * @return string
      */
     public function uri(): string
     {
@@ -62,23 +69,45 @@ class Route
 
     /**
      * Returns the route action callback.
+     *
+     * @return Closure
      */
     public function action(): \Closure
     {
         return $this->action;
     }
 
+    /**
+     * Returns the middleware stack assigned to the route.
+     *
+     * @return array<int, object>
+     */
     public function middlewares(): array
     {
         return $this->middlewares;
     }
 
+    /**
+     * Assigns middleware classes or instances to the route.
+     *
+     * @param array<int, class-string|object> $middlewares Middleware class names or instances.
+     * @return self
+     */
     public function setMiddlewares(array $middlewares): self
     {
-        $this->middlewares = array_map(fn ($middleware) => new $middleware(), $middlewares);
+        $this->middlewares = array_map(
+            fn ($middleware) => is_string($middleware) ? new $middleware() : $middleware,
+            $middlewares
+        );
+
         return $this;
     }
 
+    /**
+     * Indicates whether the route has middlewares assigned.
+     *
+     * @return bool
+     */
     public function hasMiddlewares(): bool
     {
         return count($this->middlewares) > 0;
@@ -87,7 +116,8 @@ class Route
     /**
      * Determines whether a URI matches this route pattern.
      *
-     * @param string $uri request URI
+     * @param string $uri Request URI.
+     * @return bool
      */
     public function matches(string $uri): bool
     {
@@ -96,6 +126,8 @@ class Route
 
     /**
      * Indicates whether the route pattern declares parameters.
+     *
+     * @return bool
      */
     public function hasParameter(): bool
     {
@@ -116,6 +148,13 @@ class Route
         return \array_combine($this->params, \array_slice($arguments, 1)) ?: [];
     }
 
+    /**
+     * Registers a GET route through the current application router.
+     *
+     * @param string $uri Route URI pattern.
+     * @param Closure $action Route action callback.
+     * @return Route
+     */
     public static function get(string $uri, Closure $action): Route
     {
         return Container::resolve(App::class)->router->get($uri, $action);

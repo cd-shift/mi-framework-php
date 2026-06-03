@@ -9,9 +9,17 @@ use Http\Request;
 use PHPUnit\Framework\TestCase;
 use Routing\Route;
 
+/**
+ * Tests request data access and route parameter helpers.
+ */
 class RequestTest extends TestCase
 {
-    public function test_request_returns_data_obtained_from_server_correctly()
+    /**
+     * Verifies that request state can be built through setters.
+     *
+     * @return void
+     */
+    public function test_request_returns_data_obtained_from_server_correctly(): void
     {
         $uri = '/test/route';
         $queryParams = ['a' => 1, 'b' => 2, 'test' => 'foo'];
@@ -29,9 +37,13 @@ class RequestTest extends TestCase
         $this->assertEquals(HttpMethod::POST, $request->method());
     }
 
-    public function test_data_returns_value_if_key_is_given()
+    /**
+     * Verifies that body data can be retrieved by key.
+     *
+     * @return void
+     */
+    public function test_data_returns_value_if_key_is_given(): void
     {
-        // Comprueba si la función data de la clase Request se comporta como se ha descrito en el apartado a.
         $data = ['test1' => '1', 'test2' => '2', 'test3' => '3'];
         $request = (new Request())->setPostData($data);
 
@@ -40,9 +52,13 @@ class RequestTest extends TestCase
         $this->assertNull($request->data("doesn't exist"));
     }
 
-    public function test_query_returns_value_if_key_is_given()
+    /**
+     * Verifies that query data can be retrieved by key.
+     *
+     * @return void
+     */
+    public function test_query_returns_value_if_key_is_given(): void
     {
-        // Comprueba si la función query de la clase Request se comporta como se ha descrito en el apartado a.
         $data = ['test1' => '1', 'test2' => '2', 'test3' => '30'];
         $request = (new Request())->setQueryParams($data);
 
@@ -51,9 +67,13 @@ class RequestTest extends TestCase
         $this->assertNull($request->query("doesn't exist"));
     }
 
-    public function test_route_parameters_returns_value_if_key_is_given()
+    /**
+     * Verifies that route parameters can be retrieved by key.
+     *
+     * @return void
+     */
+    public function test_route_parameters_returns_value_if_key_is_given(): void
     {
-        // Comprueba si la función routeParameters de la clase Request se comporta como se ha descrito en el apartado a.
         $route = new Route('/test/{param}/foo/{bar}', fn () => 'test');
         $request = (new Request())
                         ->setRoute($route)

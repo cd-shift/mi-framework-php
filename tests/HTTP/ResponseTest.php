@@ -7,12 +7,19 @@ namespace tests;
 use Http\Response;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Tests response factory methods and header normalization behavior.
+ */
 class ResponseTest extends TestCase
 {
-    public function test_json_response_is_structured_correctly()
+    /**
+     * Verifies that JSON responses are created with the expected content and headers.
+     *
+     * @return void
+     */
+    public function test_json_response_is_structured_correctly(): void
     {
-        $content = ['test' => 'HOLA',
-                    'num' => '1'];
+        $content = ['test' => 'HOLA', 'num' => '1'];
         $response = Response::json($content);
 
         $this->assertEquals(200, $response->status());
@@ -20,7 +27,12 @@ class ResponseTest extends TestCase
         $this->assertEquals(['content-type' => 'application/json'], $response->headers());
     }
 
-    public function test_text_response_is_constructed_correctly()
+    /**
+     * Verifies that plain text responses are created with the expected content and headers.
+     *
+     * @return void
+     */
+    public function test_text_response_is_constructed_correctly(): void
     {
         $content = 'Response Test';
         $response = Response::text($content);
@@ -30,7 +42,12 @@ class ResponseTest extends TestCase
         $this->assertEquals(['content-type' => 'text/plain'], $response->headers());
     }
 
-    public function test_redirect_response_is_constructed_correctly()
+    /**
+     * Verifies that redirect responses contain the expected status and location header.
+     *
+     * @return void
+     */
+    public function test_redirect_response_is_constructed_correctly(): void
     {
         $uri = 'redirect/uri';
         $response = Response::redirect($uri);
@@ -40,7 +57,12 @@ class ResponseTest extends TestCase
         $this->assertEquals((['location' => $uri]), $response->headers());
     }
 
-    public function test_prepare_method_removes_content_headers_if_there_is_no_content()
+    /**
+     * Verifies that prepare removes content headers when the response body is empty.
+     *
+     * @return void
+     */
+    public function test_prepare_method_removes_content_headers_if_there_is_no_content(): void
     {
         $response = new Response();
         $response->setContentType('Test');
@@ -50,7 +72,12 @@ class ResponseTest extends TestCase
         $this->assertEmpty($response->headers());
     }
 
-    public function test_prepare_method_adds_content_length_header_if_there_is_content()
+    /**
+     * Verifies that prepare adds a content length header when body content exists.
+     *
+     * @return void
+     */
+    public function test_prepare_method_adds_content_length_header_if_there_is_content(): void
     {
         $content = 'Contenido Test';
         $response = Response::text($content);

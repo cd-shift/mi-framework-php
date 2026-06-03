@@ -24,6 +24,8 @@ class Router
 
     /**
      * Initializes empty route buckets for each supported HTTP method.
+     *
+     * @return void
      */
     public function __construct()
     {
@@ -35,9 +37,10 @@ class Router
     /**
      * Resolves a request to the first matching route.
      *
-     * @param Request $request incoming HTTP request
+     * @param Request $request Incoming HTTP request.
+     * @return Route
      *
-     * @throws HttpNotFoundException when no route matches the request URI and method
+     * @throws HttpNotFoundException When no route matches the request URI and method.
      */
     public function resolveRoute(Request $request): Route
     {
@@ -46,9 +49,18 @@ class Router
                 return $route;
             }
         }
+
         throw new HttpNotFoundException();
     }
 
+    /**
+     * Resolves the request, assigns its route, and executes the route pipeline.
+     *
+     * @param Request $request Current HTTP request.
+     * @return Response
+     *
+     * @throws HttpNotFoundException When no route matches the request URI and method.
+     */
     public function resolve(Request $request): Response
     {
         $route = $this->resolveRoute($request);
@@ -59,15 +71,25 @@ class Router
         if ($route->hasMiddlewares()) {
             return $this->runMiddlewares($request, $route->middlewares(), $action);
         }
+
         return $response;
     }
 
+    /**
+     * Executes the middleware stack recursively until the target action runs.
+     *
+     * @param Request $request Current HTTP request.
+     * @param array<int, object> $middlewares Middleware instances to execute.
+     * @param Closure $target Final route action.
+     * @return Response
+     */
     protected function runMiddlewares(Request $request, array $middlewares, Closure $target): Response
     {
         if (count($middlewares) === 0) {
             return $target($request);
         }
-        return $middlewares[0]->handle( // Recursividad para ejecutar los middlewares
+
+        return $middlewares[0]->handle(
             $request,
             fn () => $this->runMiddlewares(
                 $request,
@@ -80,10 +102,11 @@ class Router
     /**
      * Registers a GET route.
      *
-     * @param string   $uri    route URI pattern
-     * @param \Closure $action route action callback
+     * @param string $uri Route URI pattern.
+     * @param Closure $action Route action callback.
+     * @return Route
      */
-    public function get(string $uri, \Closure $action): Route
+    public function get(string $uri, Closure $action): Route
     {
         return $this->registerRoute(HttpMethod::GET, $uri, $action);
     }
@@ -91,10 +114,11 @@ class Router
     /**
      * Registers a POST route.
      *
-     * @param string   $uri    route URI pattern
-     * @param \Closure $action route action callback
+     * @param string $uri Route URI pattern.
+     * @param Closure $action Route action callback.
+     * @return Route
      */
-    public function post(string $uri, \Closure $action): Route
+    public function post(string $uri, Closure $action): Route
     {
         return $this->registerRoute(HttpMethod::POST, $uri, $action);
     }
@@ -102,10 +126,11 @@ class Router
     /**
      * Registers a PUT route.
      *
-     * @param string   $uri    route URI pattern
-     * @param \Closure $action route action callback
+     * @param string $uri Route URI pattern.
+     * @param Closure $action Route action callback.
+     * @return Route
      */
-    public function put(string $uri, \Closure $action): Route
+    public function put(string $uri, Closure $action): Route
     {
         return $this->registerRoute(HttpMethod::PUT, $uri, $action);
     }
@@ -113,10 +138,11 @@ class Router
     /**
      * Registers a PATCH route.
      *
-     * @param string   $uri    route URI pattern
-     * @param \Closure $action route action callback
+     * @param string $uri Route URI pattern.
+     * @param Closure $action Route action callback.
+     * @return Route
      */
-    public function patch(string $uri, \Closure $action): Route
+    public function patch(string $uri, Closure $action): Route
     {
         return $this->registerRoute(HttpMethod::PATCH, $uri, $action);
     }
@@ -124,10 +150,11 @@ class Router
     /**
      * Registers a DELETE route.
      *
-     * @param string   $uri    route URI pattern
-     * @param \Closure $action route action callback
+     * @param string $uri Route URI pattern.
+     * @param Closure $action Route action callback.
+     * @return Route
      */
-    public function delete(string $uri, \Closure $action): Route
+    public function delete(string $uri, Closure $action): Route
     {
         return $this->registerRoute(HttpMethod::DELETE, $uri, $action);
     }
@@ -135,14 +162,16 @@ class Router
     /**
      * Registers a route for a specific HTTP method.
      *
-     * @param HttpMethod $method HTTP method bucket
-     * @param string     $uri    route URI pattern
-     * @param \Closure   $action route action callback
+     * @param HttpMethod $method HTTP method bucket.
+     * @param string $uri Route URI pattern.
+     * @param Closure $action Route action callback.
+     * @return Route
      */
-    protected function registerRoute(HttpMethod $method, string $uri, \Closure $action): Route
+    protected function registerRoute(HttpMethod $method, string $uri, Closure $action): Route
     {
         $route = new Route($uri, $action);
         $this->routes[$method->value][] = $route;
+
         return $route;
     }
 }
