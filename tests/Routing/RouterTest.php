@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace tests;
 
+use Closure;
 use Http\HttpMethod;
 use Http\Request;
+use Http\Response;
 use PHPUnit\Framework\TestCase;
 use Routing\Router;
 
@@ -105,5 +107,39 @@ class RouterTest extends TestCase
             $this->assertEquals($action, $route->action());
             $this->assertEquals($uri, $route->uri());
         }
+    }
+
+    public function test_run_middlewares(): void
+    {
+        $middleware1 = new class () {
+            public function handle(Request $request, Closure $next): Response
+            {
+                $response = $next($request);
+                $response->setHeader('X-Middleware1', 'middleware1');
+                return $response;
+            }
+        };
+
+        $middleware2 = new class () {
+            public function handle(Request $request, Closure $next): Response
+            {
+                $response = $next($request);
+                $response->setHeader('X-Middleware2', 'middleware2');
+                return $response;
+            }
+        };
+
+        $router = new Router();
+        $uri = '/test';
+        $expectedResponse = Response::text('test');
+        $action = fn ($request) => $expectedResponse;
+        $router->get($uri, $action)->setMiddlewares([$middleware1, $middleware2]);
+
+        $request = $this->createMockRequest($uri, HttpMethod::GET);
+        $response = $router->resolve($request);
+
+        $this->assertEquals($expectedResponse, $response);
+        $this->assertEquals('middleware1', $response->headers('X-Middleware1'));
+        $this->assertEquals('middleware2', $response->headers('X-Middleware2'));
     }
 }

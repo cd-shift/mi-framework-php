@@ -64,14 +64,16 @@ class Router
 
     protected function runMiddlewares(Request $request, array $middlewares, Closure $target): Response
     {
-        if (count($middlewares) === 0) 
-        {
+        if (count($middlewares) === 0) {
             return $target($request);
         }
         return $middlewares[0]->handle( // Recursividad para ejecutar los middlewares
-            $request, 
-            fn () => $this->runMiddlewares($request, array_slice($middlewares, 1),
-            $target)
+            $request,
+            fn () => $this->runMiddlewares(
+                $request,
+                array_slice($middlewares, 1),
+                $target
+            )
         );
     }
 
