@@ -11,6 +11,8 @@ use Http\Response;
 use Routing\Router;
 use Server\PhpNativeServer;
 use Server\Server;
+use View\MiEngine;
+use View\View;
 
 /**
  * Coordinates application bootstrapping and request execution.
@@ -32,6 +34,8 @@ class App
      */
     public Server $server;
 
+    public View $view;
+
     /**
      * Bootstraps the application singleton with its core services.
      *
@@ -43,6 +47,7 @@ class App
         $app->router = new Router();
         $app->server = new PhpNativeServer();
         $app->request = $app->server->getRequest();
+        $app->view = new MiEngine(__DIR__ . '/../views');
 
         return $app;
     }

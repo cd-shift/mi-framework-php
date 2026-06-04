@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Http;
 
+use Container\Container;
+use Framework\App;
+
 /**
  * Represents an HTTP response with status, headers, and optional content.
  */
@@ -179,5 +182,14 @@ class Response
             ->setStatus(302)
             ->setHeader('Location', $uri)
         ;
+    }
+
+    public static function view(string $view): self
+    {
+        $content = Container::resolve(App::class)->view->render($view);
+
+        return(new self())
+            ->setContentType('text/html')
+            ->setContent($content);
     }
 }
