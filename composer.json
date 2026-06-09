@@ -11,7 +11,11 @@
             "Routing\\": "src/Routing",
             "Server\\": "src/Server",
             "View\\": "src/View"
-        }
+        },
+        "files": [
+            "src/Helpers/AppHelper.php",
+            "src/Helpers/HttpHelper.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

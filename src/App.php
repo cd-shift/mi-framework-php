@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Framework;
 
-use Container\Container;
 use Http\HttpNotFoundException;
 use Http\Request;
 use Http\Response;
@@ -43,7 +42,7 @@ class App
      */
     public static function bootstrap(): self
     {
-        $app = Container::singleton(App::class);
+        $app = singleton(App::class);
         $app->router = new Router();
         $app->server = new PhpNativeServer();
         $app->request = $app->server->getRequest();

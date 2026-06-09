@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Routing;
 
 use Closure;
-use Container\Container;
-use Framework\App;
 
 /**
  * Represents a route definition, its URI matching rules, and middleware stack.
@@ -157,6 +155,6 @@ class Route
      */
     public static function get(string $uri, Closure $action): Route
     {
-        return Container::resolve(App::class)->router->get($uri, $action);
+        return app()->router->get($uri, $action);
     }
 }
