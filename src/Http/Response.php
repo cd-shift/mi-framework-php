@@ -184,9 +184,9 @@ class Response
         ;
     }
 
-    public static function view(string $view): self
+    public static function view(string $view, array $params = [], ?string $layout = null): self
     {
-        $content = Container::resolve(App::class)->view->render($view);
+        $content = Container::resolve(App::class)->view->render($view, $params, $layout);
 
         return(new self())
             ->setContentType('text/html')
