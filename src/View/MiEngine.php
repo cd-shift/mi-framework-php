@@ -29,7 +29,7 @@ class MiEngine implements View
         }
 
         ob_start();
-        include_once $phpFile;
+        include $phpFile;
         return ob_get_clean();
     }
 
