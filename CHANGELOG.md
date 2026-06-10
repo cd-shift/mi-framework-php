@@ -2,6 +2,22 @@
 
 Todos los cambios importantes de este proyecto se documentan aquí.
 
+## [2026-06-10]
+
+### Agregado
+- Documentación técnica para helpers globales en `src/Helpers`.
+- Documentación técnica para el subsistema de vistas (`View\View`, `View\MiEngine`).
+- Pruebas de vistas reflejadas en la documentación del proyecto.
+
+### Cambiado
+- `README.md` actualizado para incluir helpers, renderizado de vistas, estructura real de carpetas y alcance actual de `phpDocumentor`.
+- `CHANGELOG.md` alineado con el estado actual del proyecto.
+- `public/index.php` ahora tiene DocBlocks más completos para rutas de ejemplo y middleware.
+- Normalización adicional de DocBlocks en `Response`, `App` y `MiEngineTest`.
+
+### Documentación
+- `phpDocumentor` regenerado con foco en `src/` y `tests/`, incluyendo las nuevas clases de `Helpers` y `View`.
+
 ## [2026-06-03]
 
 ### Agregado

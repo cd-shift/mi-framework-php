@@ -2,13 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Tests\View;
+namespace tests;
 
 use PHPUnit\Framework\TestCase;
 use View\MiEngine;
 
+/**
+ * Tests layout rendering and repeated template execution for the view engine.
+ */
 class MiEngineTest extends TestCase
 {
+    /**
+     * Verifies that a view is rendered with its provided parameters.
+     *
+     * @return void
+     */
     public function test_renders_template_with_parameters(): void
     {
         $parameter1 = 'TEST 1';
@@ -33,6 +41,11 @@ class MiEngineTest extends TestCase
         );
     }
 
+    /**
+     * Verifies that rendering the same template multiple times does not leak state.
+     *
+     * @return void
+     */
     public function test_renders_same_template_multiple_times(): void
     {
         $engine = new MiEngine(__DIR__ . '/views');

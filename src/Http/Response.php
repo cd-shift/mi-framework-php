@@ -181,6 +181,14 @@ class Response
         ;
     }
 
+    /**
+     * Creates an HTML response from a rendered view template.
+     *
+     * @param string $view View name relative to the configured views directory.
+     * @param array<string, mixed> $params Variables exposed to the template.
+     * @param string|null $layout Layout name or null to use the default layout.
+     * @return self
+     */
     public static function view(string $view, array $params = [], ?string $layout = null): self
     {
         $content = app()->view->render($view, $params, $layout);

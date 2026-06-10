@@ -33,6 +33,9 @@ class App
      */
     public Server $server;
 
+    /**
+     * View renderer used by HTML response helpers.
+     */
     public View $view;
 
     /**

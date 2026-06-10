@@ -31,6 +31,7 @@ $app->router->get('/test/{param}', function (Request $request) {
 /**
  * Handles POST /test.
  *
+ * @param Request $request Incoming request.
  * @return Response
  */
 $app->router->post('/test', function (Request $request) {
@@ -47,9 +48,19 @@ $app->router->get('/redirect', function (Request $request) {
     return redirect('/test');
 });
 
+/**
+ * Example middleware that guards routes using the Authorization header.
+ */
 class AuthMiddleware implements Middleware
 {
-    public function handle(Request $request, Closure $next): Response
+    /**
+     * Validates the request and enriches the response when authorized.
+     *
+     * @param Request $request Current HTTP request.
+     * @param \Closure $next Next middleware or final route action.
+     * @return Response
+     */
+    public function handle(Request $request, \Closure $next): Response
     {
         if ($request->headers('Authorization') != 'test') {
             return json(['message' => 'Not authenticated'])->setStatus(401);
@@ -60,9 +71,21 @@ class AuthMiddleware implements Middleware
     }
 }
 
+/**
+ * Handles GET /middlewares.
+ *
+ * @param Request $request Incoming request.
+ * @return Response
+ */
 Route::get('/middlewares', fn (Request $request) => json(['Message' => 'Ok']))
         ->setMiddlewares([AuthMiddleware::class]);
 
+/**
+ * Handles GET /html.
+ *
+ * @param Request $request Incoming request.
+ * @return Response
+ */
 Route::get('/html', fn (Request $request) => view('home', ['user' => 'Manolo']));
 
 $app->run();
