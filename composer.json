@@ -10,7 +10,8 @@
             "Http\\": "src/Http",
             "Routing\\": "src/Routing",
             "Server\\": "src/Server",
-            "View\\": "src/View"
+            "View\\": "src/View",
+            "Validation\\": "src/Validation"
         },
         "files": [
             "src/Helpers/AppHelper.php",
