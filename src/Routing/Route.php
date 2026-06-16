@@ -19,7 +19,7 @@ class Route
     /**
      * Route action callback.
      */
-    protected \Closure $action;
+    protected Closure $action;
 
     /**
      * Regular expression derived from the URI pattern.
@@ -156,5 +156,10 @@ class Route
     public static function get(string $uri, Closure $action): Route
     {
         return app()->router->get($uri, $action);
+    }
+
+    public static function post(string $uri, Closure $action): Route
+    {
+        return app()->router->post($uri, $action);
     }
 }

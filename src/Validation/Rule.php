@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Validation;
 
 use Validation\Rules\Email;
+use Validation\Rules\LessThan;
+use Validation\Rules\Number;
 use Validation\Rules\Required;
+use Validation\Rules\RequiredWhen;
 use Validation\Rules\RequiredWith;
 use Validation\Rules\ValidationRule;
 
@@ -16,9 +19,24 @@ class Rule
         return new Email();
     }
 
+    public static function number(): ValidationRule
+    {
+        return new Number();
+    }
+
+    public static function lessThan(int|float $value): ValidationRule
+    {
+        return new LessThan($value);
+    }
+
     public static function required(): ValidationRule
     {
         return new Required();
+    }
+
+    public static function requiredWhen(string $otherField, string $operator, int|float $value): ValidationRule
+    {
+        return new RequiredWhen($otherField, $operator, $value);
     }
 
     public static function requiredWith(string $withField): ValidationRule

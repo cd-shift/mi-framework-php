@@ -11,7 +11,8 @@
             "Routing\\": "src/Routing",
             "Server\\": "src/Server",
             "View\\": "src/View",
-            "Validation\\": "src/Validation"
+            "Validation\\": "src/Validation",
+            "Exceptions\\": "src/Exceptions"
         },
         "files": [
             "src/Helpers/AppHelper.php",

@@ -15,6 +15,8 @@ use Http\Middleware;
 use Http\Request;
 use Http\Response;
 use Routing\Route;
+use Validation\Rule;
+use Validation\Rules\Required;
 
 $app = App::bootstrap();
 
@@ -87,5 +89,13 @@ Route::get('/middlewares', fn (Request $request) => json(['Message' => 'Ok']))
  * @return Response
  */
 Route::get('/html', fn (Request $request) => view('home', ['user' => 'Manolo']));
+
+Route::post('/validate', fn (Request $request) => json($request->validate([
+    'test' => Rule::required(),
+    'num' => Rule::number(),
+    'email' => [Rule::required(), Rule::email() ],
+], [
+    'email' => [Required::class => 'Dame el CAMPO'],
+])));
 
 $app->run();

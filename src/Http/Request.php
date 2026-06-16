@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Http;
 
 use Routing\Route;
+use Validation\Validator;
 
 /**
  * Stores normalized request data produced by a server adapter.
@@ -206,5 +207,12 @@ class Request
             return $parameters;
         }
         return $parameters[$key] ?? null;
+    }
+
+    public function validate(array $rules, array $messages = []): array
+    {
+        $validator = new Validator($this->data);
+        return $validator->validate($rules, $messages);
+
     }
 }
