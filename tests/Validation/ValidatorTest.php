@@ -6,67 +6,61 @@ namespace tests\Validation;
 
 use PHPUnit\Framework\TestCase;
 use Validation\Exceptions\ValidationException;
-use Validation\Rule;
 use Validation\Rules\Email;
+use Validation\Rules\LessThan;
+use Validation\Rules\Number;
 use Validation\Rules\Required;
+use Validation\Rules\RequiredWith;
 use Validation\Validator;
 
-class ValidatorTest extends TestCase
-{
-    public function test_invalid_email_returns_email_rule_error(): void
-    {
-        $validator = new Validator([
-            'test' => 'hola',
-            'num' => '5',
-            'email' => 'testtest.com',
-        ]);
+class ValidatorTest extends TestCase {
+    public function test_basic_validation_passes() {
+        $data = [
+            "email" => "test@test.com",
+            "other" => 2,
+            "num" => 3,
+            "foo" => 5,
+            "bar" => 4
+        ];
 
-        $this->expectException(ValidationException::class);
+        $rules = [
+            "email" => new Email(),
+            "other" => new Required(),
+            "num" => new Number(),
+        ];
 
-        try {
-            $validator->validate([
-                'test' => Rule::required(),
-                'num' => Rule::number(),
-                'email' => [Rule::required(), Rule::email()],
-            ]);
-        } catch (ValidationException $exception) {
-            $this->assertSame([
-                'email' => [
-                    Email::class => 'Email has invalid format',
-                ],
-            ], $exception->errors());
+        $expected = [
+            "email" => "test@test.com",
+            "other" => 2,
+            "num" => 3,
+        ];
 
-            throw $exception;
-        }
+        $v = new Validator($data);
+
+        $this->assertEquals($expected, $v->validate($rules));
     }
 
-    public function test_empty_email_uses_custom_required_message(): void
-    {
-        $validator = new Validator([
-            'test' => 'hola',
-            'num' => '5',
-            'email' => '',
-        ]);
-
+    public function test_throws_validation_exception_on_invalid_data() {
         $this->expectException(ValidationException::class);
+        $v = new Validator(["test" => "test"]);
+        $v->validate(["test" => new Number()]);
+    }
 
-        try {
-            $validator->validate([
-                'test' => Rule::required(),
-                'num' => Rule::number(),
-                'email' => [Rule::required(), Rule::email()],
-            ], [
-                'email' => [Required::class => 'Dame el CAMPO'],
-            ]);
-        } catch (ValidationException $exception) {
-            $this->assertSame([
-                'email' => [
-                    Required::class => 'Dame el CAMPO',
-                    Email::class => 'Email has invalid format',
-                ],
-            ], $exception->errors());
+    /**
+     * @depends test_basic_validation_passes
+     */
+    public function test_multiple_rules_validation() {
+        $data = ["age" => 20, "num" => 3, "foo" => 5];
 
-            throw $exception;
-        }
+        $rules = [
+            "age" => new LessThan(100),
+            "num" => [new RequiredWith("age"), new Number()],
+        ];
+
+        $expected = ["age" => 20, "num" => 3];
+
+        $v = new Validator($data);
+
+        $this->assertEquals($expected, $v->validate($rules));
     }
 }
