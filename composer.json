@@ -16,7 +16,8 @@
         },
         "files": [
             "src/Helpers/AppHelper.php",
-            "src/Helpers/HttpHelper.php"
+            "src/Helpers/HttpHelper.php",
+            "src/Helpers/StringHelper.php"
         ]
     },
     "autoload-dev": {

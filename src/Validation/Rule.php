@@ -43,4 +43,8 @@ class Rule
     {
         return new RequiredWith($withField);
     }
+
+    public static function from(string $str): ValidationRule
+    {
+    }
 }
