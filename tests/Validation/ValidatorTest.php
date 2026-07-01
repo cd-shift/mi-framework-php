@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace tests\Validation;
 
+use Override;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\TestCase;
 use Validation\Exceptions\ValidationException;
+use Validation\Rule;
 use Validation\Rules\Email;
 use Validation\Rules\LessThan;
 use Validation\Rules\Number;
@@ -16,6 +18,12 @@ use Validation\Validator;
 
 class ValidatorTest extends TestCase
 {
+    #[Override]
+    protected function setUp(): void
+    {
+        Rule::loadDefaultRules();
+    }
+
     public function test_basic_validation_passes()
     {
         $data = [
@@ -65,5 +73,34 @@ class ValidatorTest extends TestCase
         $v = new Validator($data);
 
         $this->assertEquals($expected, $v->validate($rules));
+    }
+
+    public function test_overrides_error_messages_correctly()
+    {
+        $data = ['email' => 'test@', 'num1' => 'not a number'];
+
+        $rules = [
+            'email' => 'email',
+            'num1' => 'number',
+            'num2' => ['required', 'number'],
+        ];
+
+        $messages = [
+            'email' => ['email' => 'test email message'],
+            'num1' => ['number' => 'test number message'],
+            'num2' => [
+                'required' => 'test required message',
+                'number' => 'test number message again'
+            ]
+        ];
+
+        $v = new Validator($data);
+
+        try {
+            $v->validate($rules, $messages);
+            $this->fail('Did not throw ValidationException');
+        } catch (ValidationException $e) {
+            $this->assertEquals($messages, $e->errors());
+        }
     }
 }
