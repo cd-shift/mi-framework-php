@@ -12,6 +12,7 @@ use Server\PhpNativeServer;
 use Server\Server;
 use Throwable;
 use Validation\Exceptions\ValidationException;
+use Validation\Rule;
 use View\MiEngine;
 use View\View;
 
@@ -52,6 +53,7 @@ class App
         $app->server = new PhpNativeServer();
         $app->request = $app->server->getRequest();
         $app->view = new MiEngine(__DIR__ . '/../views');
+        Rule::loadDefaultRules();
 
         return $app;
     }
@@ -72,10 +74,11 @@ class App
             $this->abort(json($e->errors())->setStatus(422));
         } catch (Throwable $e) {
             $response = json([
+                'error' => $e::class,
                 'message' => $e->getMessage(),
                 'trace' => $e->getTrace(),
             ]);
-            $this->abort($response);
+            $this->abort($response->setStatus(500));
         }
     }
 

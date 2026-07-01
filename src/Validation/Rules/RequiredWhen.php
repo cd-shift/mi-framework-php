@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Validation\Rules;
 
-use InvalidArgumentException;
 use Override;
+use Validation\Exceptions\RuleParseException;
 
 class RequiredWhen implements ValidationRule
 {
@@ -16,7 +16,7 @@ class RequiredWhen implements ValidationRule
     public function __construct(string $otherField, string $operator, int|float $value)
     {
         if (!in_array($operator, ['<', '<=', '=', '>', '>='], true)) {
-            throw new InvalidArgumentException('RequiredWhen only supports <, <=, =, > or >= operators');
+            throw new RuleParseException("RequiredWhen only supports <, <=, =, > or >= operators, Unknown operator given: $operator");
         }
 
         $this->otherField = $otherField;

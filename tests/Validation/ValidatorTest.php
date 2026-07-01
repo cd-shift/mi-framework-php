@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace tests\Validation;
 
+use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\TestCase;
 use Validation\Exceptions\ValidationException;
 use Validation\Rules\Email;
@@ -49,9 +50,7 @@ class ValidatorTest extends TestCase
         $v->validate(['test' => new Number()]);
     }
 
-    /**
-     * @depends test_basic_validation_passes
-     */
+    #[Depends('test_basic_validation_passes')]
     public function test_multiple_rules_validation()
     {
         $data = ['age' => 20, 'num' => 3, 'foo' => 5];
