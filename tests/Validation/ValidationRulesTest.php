@@ -6,8 +6,10 @@ namespace tests\Validation;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Validation\Exceptions\RuleParseException;
 use Validation\Rules\Email;
 use Validation\Rules\Required;
+use Validation\Rules\RequiredWhen;
 use Validation\Rules\RequiredWith;
 
 class ValidationRulesTest extends TestCase
@@ -62,5 +64,15 @@ class ValidationRulesTest extends TestCase
         $this->assertTrue($rule->isValid('test', $data));
         $data = ['other' => 10];
         $this->assertFalse($rule->isValid('test', $data));
+    }
+
+    public function test_required_when_throws_parse_rule_exception_when_operator_is_invalid(): void
+    {
+        $this->expectException(RuleParseException::class);
+        $this->expectExceptionMessage(
+            'RequiredWhen only supports <, <=, =, > or >= operators, Unknown operator given: |||'
+        );
+
+        new RequiredWhen('num', '|||', 5);
     }
 }
