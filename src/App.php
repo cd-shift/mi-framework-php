@@ -10,6 +10,8 @@ use Http\Response;
 use Routing\Router;
 use Server\PhpNativeServer;
 use Server\Server;
+use Session\PhpNativeSessionStorage;
+use Session\Session;
 use Throwable;
 use Validation\Exceptions\ValidationException;
 use Validation\Rule;
@@ -41,6 +43,8 @@ class App
      */
     public View $view;
 
+    public Session $session;
+
     /**
      * Bootstraps the application singleton with its core services.
      *
@@ -53,6 +57,7 @@ class App
         $app->server = new PhpNativeServer();
         $app->request = $app->server->getRequest();
         $app->view = new MiEngine(__DIR__ . '/../views');
+        $app->session = new Session(new PhpNativeSessionStorage());
         Rule::loadDefaultRules();
 
         return $app;

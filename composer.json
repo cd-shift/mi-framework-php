@@ -12,12 +12,14 @@
             "Server\\": "src/Server",
             "View\\": "src/View",
             "Validation\\": "src/Validation",
-            "Exceptions\\": "src/Exceptions"
+            "Exceptions\\": "src/Exceptions",
+            "Session\\": "src/Session"
         },
         "files": [
             "src/Helpers/AppHelper.php",
             "src/Helpers/HttpHelper.php",
-            "src/Helpers/StringHelper.php"
+            "src/Helpers/StringHelper.php",
+            "src/Helpers/SessionHelper.php"
         ]
     },
     "autoload-dev": {

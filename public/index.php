@@ -96,4 +96,9 @@ Route::post('/validate', fn (Request $request) => json($request->validate([
     'email' => ['email' => 'Dame el CAMPO']
 ])));
 
+Route::get('/session', function (Request $request) {
+    app()->session->remove('test');
+    return json(['id' => session()->id(), 'test' => session()->get('test', 'Valor por defecto')]);
+});
+
 $app->run();
