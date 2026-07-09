@@ -28,6 +28,16 @@ function redirect(string $uri): Response
 }
 
 /**
+ * Creates a redirect response to the previous request.
+ *
+ * @return Response
+ */
+function redirectBack(): Response
+{
+    return redirect(session()->get('_previous', '/'));
+}
+
+/**
  * Creates an HTML response by rendering a view and optional layout.
  *
  * @param string $view View name relative to the configured views directory.

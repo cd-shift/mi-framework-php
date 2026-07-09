@@ -97,8 +97,14 @@ Route::post('/validate', fn (Request $request) => json($request->validate([
 ])));
 
 Route::get('/session', function (Request $request) {
-    app()->session->remove('test');
-    return json(['id' => session()->id(), 'test' => session()->get('test', 'Valor por defecto')]);
+    // session()->flash('test', 'test');
+    return json($_SESSION);
+});
+
+Route::get('/form', fn (Request $request) => view('form'));
+
+Route::post('/form', function (Request $request) {
+    return json($request->validate(['email' => 'email', 'name' => 'required']));
 });
 
 $app->run();
