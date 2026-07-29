@@ -10,6 +10,7 @@ declare(strict_types=1);
  */
 require_once '../vendor/autoload.php';
 
+use Database\DB;
 use Framework\App;
 use Http\Middleware;
 use Http\Request;
@@ -105,6 +106,15 @@ Route::get('/form', fn (Request $request) => view('form'));
 
 Route::post('/form', function (Request $request) {
     return json($request->validate(['email' => 'email', 'name' => ['required']]));
+});
+
+Route::get('/users', function (Request $request) {
+    return json(DB::statement('SELECT * FROM users'));
+});
+
+Route::post('/user', function (Request $request) {
+    DB::statement('INSERT INTO users (name, email) VALUES (?, ?)', [$request->data('name'), $request->data('email')]);
+    return json(['message' => 'User created']);
 });
 
 $app->run();

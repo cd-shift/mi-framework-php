@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Framework;
 
+use Database\Drivers\DatabaseDriver;
+use Database\Drivers\PDODriver;
 use Http\HttpMethod;
 use Http\HttpNotFoundException;
 use Http\Request;
@@ -46,6 +48,8 @@ class App
 
     public Session $session;
 
+    public DatabaseDriver $database;
+
     /**
      * Bootstraps the application singleton with its core services.
      *
@@ -59,6 +63,8 @@ class App
         $app->request = $app->server->getRequest();
         $app->view = new MiEngine(__DIR__ . '/../views');
         $app->session = new Session(new PhpNativeSessionStorage());
+        $app->database = new PDODriver();
+        $app->database->connect('mysql', 'localhost', 3306, 'mi_framework_db', 'root', 'Contraroot');
         Rule::loadDefaultRules();
 
         return $app;
@@ -75,6 +81,8 @@ class App
     {
         $this->prepareNextRequest();
         $this->server->sendResponse($response);
+        $this->database->close();
+        exit();
     }
 
     /**
