@@ -6,6 +6,8 @@ namespace Database;
 
 use Closure;
 use Database\Drivers\DatabaseDriver;
+use Database\Query\Builder;
+use Database\Query\Expression;
 use PDO;
 
 class DB
@@ -13,6 +15,16 @@ class DB
     public static function connection(): DatabaseDriver
     {
         return app()->database;
+    }
+
+    public static function table(string $table): Builder
+    {
+        return new Builder(self::connection(), $table);
+    }
+
+    public static function raw(string $value): Expression
+    {
+        return new Expression($value);
     }
 
     public static function statement(string $query, array $bindings = []): array
