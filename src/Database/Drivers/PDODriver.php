@@ -4,12 +4,27 @@ declare(strict_types=1);
 
 namespace Database\Drivers;
 
+use Closure;
+use Database\Exceptions\ConnectionException;
+use Database\Exceptions\QueryException;
 use PDO;
-use RuntimeException;
+use PDOException;
+use PDOStatement;
+use Throwable;
 
 class PDODriver implements DatabaseDriver
 {
-    private ?PDO $pdo;
+    private ?PDO $pdo = null;
+
+    private array $config = [];
+
+    private bool $queryLogEnabled = false;
+
+    private array $queryLog = [];
+
+    private ?string $lastQuery = null;
+
+    private array $lastBindings = [];
 
     public function connect(
         string $protocol,
@@ -18,27 +33,297 @@ class PDODriver implements DatabaseDriver
         string $database,
         string $username,
         string $password,
+        string $charset = 'utf8mb4',
+        array $options = [],
     ): void {
-        $dsn = "{$protocol}:host={$host};port={$port};dbname={$database}";
-        $this->pdo = new PDO($dsn, $username, $password);
+        $this->config = compact('protocol', 'host', 'port', 'database', 'username', 'password', 'charset', 'options');
+
+        try {
+            $this->pdo = $this->createConnection($this->config);
+        } catch (PDOException $e) {
+            $this->pdo = null;
+
+            throw new ConnectionException(
+                "Failed to connect to database [{$protocol}]: {$e->getMessage()}",
+                0,
+                $e,
+            );
+        }
     }
 
     public function close(): void
     {
         $this->pdo = null;
+        $this->queryLog = [];
+        $this->lastQuery = null;
+        $this->lastBindings = [];
+    }
+
+    public function isConnected(): bool
+    {
+        return $this->pdo instanceof PDO;
+    }
+
+    public function reconnect(): void
+    {
+        $config = $this->config;
+
+        $this->close();
+        $this->connect(
+            $config['protocol'],
+            $config['host'],
+            $config['port'],
+            $config['database'],
+            $config['username'],
+            $config['password'],
+            $config['charset'],
+            $config['options'],
+        );
+    }
+
+    public function getPdo(): PDO
+    {
+        $this->ensureConnected();
+
+        return $this->pdo;
+    }
+
+    public function getConfig(): array
+    {
+        return $this->config;
+    }
+
+    public function getDatabaseName(): string
+    {
+        return $this->config['database'] ?? '';
     }
 
     public function statement(string $query, array $bindings = []): array
     {
-        $statement = $this->pdo->prepare($query);
-        $statement->execute($bindings);
+        $rows = $this->run($query, $bindings)->fetchAll();
 
-        $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+        return $rows === false ? [] : $rows;
+    }
 
-        if ($result === false) {
-            throw new RuntimeException('Failed to fetch results from statement');
+    public function execute(string $query, array $bindings = []): int
+    {
+        return $this->run($query, $bindings)->rowCount();
+    }
+
+    public function select(string $query, array $bindings = []): array
+    {
+        return $this->statement($query, $bindings);
+    }
+
+    public function selectOne(string $query, array $bindings = []): ?array
+    {
+        $rows = $this->statement($query, $bindings);
+
+        return $rows[0] ?? null;
+    }
+
+    public function selectValue(string $query, array $bindings = []): mixed
+    {
+        $value = $this->run($query, $bindings)->fetchColumn();
+
+        return $value === false ? null : $value;
+    }
+
+    public function selectColumn(string $query, array $bindings = []): array
+    {
+        return $this->run($query, $bindings)->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    public function insert(string $table, array $data): int|string
+    {
+        if ($data === []) {
+            throw new QueryException('Cannot insert an empty data set', 0, null, "INSERT INTO {$table}");
         }
 
-        return $result;
+        $columns = implode(', ', array_keys($data));
+        $placeholders = implode(', ', array_fill(0, count($data), '?'));
+        $query = "INSERT INTO {$table} ({$columns}) VALUES ({$placeholders})";
+
+        $this->execute($query, array_values($data));
+
+        return $this->lastInsertId();
+    }
+
+    public function update(string $table, array $data, string $where, array $bindings = []): int
+    {
+        $set = implode(', ', array_map(static fn (string $column): string => "{$column} = ?", array_keys($data)));
+        $query = "UPDATE {$table} SET {$set} WHERE {$where}";
+
+        return $this->execute($query, array_merge(array_values($data), $bindings));
+    }
+
+    public function delete(string $table, string $where, array $bindings = []): int
+    {
+        $query = "DELETE FROM {$table} WHERE {$where}";
+
+        return $this->execute($query, $bindings);
+    }
+
+    public function lastInsertId(?string $name = null): int|string
+    {
+        $this->ensureConnected();
+
+        return $this->pdo->lastInsertId($name);
+    }
+
+    public function beginTransaction(): bool
+    {
+        $this->ensureConnected();
+
+        return $this->pdo->beginTransaction();
+    }
+
+    public function commit(): bool
+    {
+        $this->ensureConnected();
+
+        return $this->pdo->commit();
+    }
+
+    public function rollBack(): bool
+    {
+        $this->ensureConnected();
+
+        return $this->pdo->rollBack();
+    }
+
+    public function inTransaction(): bool
+    {
+        return $this->pdo?->inTransaction() ?? false;
+    }
+
+    public function transaction(Closure $callback): mixed
+    {
+        $this->beginTransaction();
+
+        try {
+            $result = $callback($this);
+            $this->commit();
+
+            return $result;
+        } catch (Throwable $e) {
+            if ($this->inTransaction()) {
+                $this->rollBack();
+            }
+
+            throw $e;
+        }
+    }
+
+    public function tableExists(string $table): bool
+    {
+        $result = match ($this->config['protocol'] ?? '') {
+            'sqlite' => $this->selectValue(
+                "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+                [$table],
+            ),
+            'mysql' => $this->selectValue(
+                'SELECT 1 FROM information_schema.tables WHERE table_schema = ? AND table_name = ?',
+                [$this->config['database'], $table],
+            ),
+            'pgsql' => $this->selectValue(
+                "SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = ?",
+                [$table],
+            ),
+            default => false,
+        };
+
+        return (bool) $result;
+    }
+
+    public function enableQueryLog(): void
+    {
+        $this->queryLogEnabled = true;
+    }
+
+    public function disableQueryLog(): void
+    {
+        $this->queryLogEnabled = false;
+    }
+
+    public function getQueryLog(): array
+    {
+        return $this->queryLog;
+    }
+
+    public function getLastQuery(): ?string
+    {
+        return $this->lastQuery;
+    }
+
+    private function createConnection(array $config): PDO
+    {
+        $defaults = [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ];
+
+        if ($config['protocol'] === 'mysql') {
+            $defaults[PDO::ATTR_EMULATE_PREPARES] = false;
+        }
+
+        $options = array_replace($defaults, $config['options']);
+
+        return new PDO(
+            $this->buildDsn($config),
+            $config['username'],
+            $config['password'],
+            $options,
+        );
+    }
+
+    private function buildDsn(array $config): string
+    {
+        return match ($config['protocol']) {
+            'sqlite' => "sqlite:{$config['database']}",
+            'mysql' => "mysql:host={$config['host']};port={$config['port']};dbname={$config['database']};charset={$config['charset']}",
+            'pgsql' => "pgsql:host={$config['host']};port={$config['port']};dbname={$config['database']}",
+            'sqlsrv' => "sqlsrv:Server={$config['host']},{$config['port']};Database={$config['database']}",
+            default => "{$config['protocol']}:host={$config['host']};port={$config['port']};dbname={$config['database']}",
+        };
+    }
+
+    private function run(string $query, array $bindings): PDOStatement
+    {
+        $this->ensureConnected();
+
+        $start = microtime(true);
+
+        try {
+            $statement = $this->pdo->prepare($query);
+            $statement->execute($bindings);
+        } catch (PDOException $e) {
+            throw new QueryException($e->getMessage(), $e->getCode(), $e, $query, $bindings);
+        } finally {
+            $this->record($query, $bindings, $start);
+        }
+
+        return $statement;
+    }
+
+    private function record(string $query, array $bindings, float $start): void
+    {
+        if ($this->queryLogEnabled) {
+            $this->queryLog[] = [
+                'query' => $query,
+                'bindings' => $bindings,
+                'time' => microtime(true) - $start,
+            ];
+        }
+
+        $this->lastQuery = $query;
+        $this->lastBindings = $bindings;
+    }
+
+    private function ensureConnected(): void
+    {
+        if (!$this->pdo instanceof PDO) {
+            throw new ConnectionException('Database connection is not established. Call connect() first.');
+        }
     }
 }
