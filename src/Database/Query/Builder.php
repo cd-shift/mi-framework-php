@@ -464,7 +464,12 @@ class Builder
         return $this->driver->select($builder->compileSelect(), $builder->mergeBindings());
     }
 
-    public function first(array|string $columns = ['*']): ?array
+    /**
+     * Returns the first row. Declared `mixed` (instead of ?array) so subclasses
+     * like ModelBuilder can narrow the return type to a hydrated model while
+     * keeping the inherited value()/pluck() working through ArrayAccess.
+     */
+    public function first(array|string $columns = ['*']): mixed
     {
         $builder = clone $this;
         $builder->limit(1);
@@ -1028,39 +1033,17 @@ class Builder
 
     private function wrapColumn(string $column): string
     {
-        $column = trim($column);
-
-        if (preg_match('/^(.+?)\s+as\s+(.+)$/i', $column, $matches)) {
-            return $this->wrapSegment($matches[1]) . ' AS ' . $this->wrapSegment($matches[2]);
-        }
-
-        if (str_contains($column, '.')) {
-            return implode('.', array_map(fn (string $segment): string => $this->wrapSegment($segment), explode('.', $column)));
-        }
-
-        return $this->wrapSegment($column);
+        return Identifier::wrapColumn($column, $this->protocol());
     }
 
     private function wrapSegment(string $segment): string
     {
-        $segment = trim($segment);
+        return Identifier::wrapSegment($segment, $this->protocol());
+    }
 
-        if ($segment === '*') {
-            return '*';
-        }
-
-        // Security: never interpolate non-identifier text into SQL. Returning
-        // the segment verbatim would let an attacker smuggle raw SQL (e.g. a
-        // column like "name FROM users"). Raw expressions must be passed
-        // explicitly as Expression, never as a plain string.
-        if (!preg_match('/^[A-Za-z0-9_$]+$/', $segment)) {
-            throw new BuilderException(sprintf(
-                'Invalid SQL identifier [%s]. Use Expression for raw SQL instead of a plain string.',
-                $segment,
-            ));
-        }
-
-        return '`' . str_replace('`', '``', $segment) . '`';
+    private function protocol(): string
+    {
+        return $this->driver->getConfig()['protocol'] ?? 'mysql';
     }
 
     private function validateOperator(mixed $operator): string

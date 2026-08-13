@@ -7,6 +7,8 @@ namespace tests\Database;
 use Database\Drivers\PDODriver;
 use Database\Exceptions\ConnectionException;
 use Database\Exceptions\QueryException;
+use Database\Exceptions\UnsupportedDriverException;
+use Database\Query\BuilderException;
 use Exception;
 use PDO;
 use PHPUnit\Framework\TestCase;
@@ -312,6 +314,87 @@ class PDODriverTest extends TestCase
         $this->expectException(ConnectionException::class);
 
         $driver->connect('invalid_driver', 'localhost', 0, 'db', 'root', 'pass');
+    }
+
+    public function test_get_config_redacts_password(): void
+    {
+        $driver = new PDODriver();
+        $driver->connect('sqlite', '', 0, ':memory:', 'root', 'secret');
+
+        $config = $driver->getConfig();
+
+        $this->assertSame('******', $config['password']);
+        $this->assertSame('root', $config['username']);
+    }
+
+    public function test_options_cannot_disable_exception_error_mode(): void
+    {
+        $driver = new PDODriver();
+        $driver->connect('sqlite', '', 0, ':memory:', '', '', 'utf8mb4', [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_SILENT,
+        ]);
+
+        $this->assertSame(PDO::ERRMODE_EXCEPTION, $driver->getPdo()->getAttribute(PDO::ATTR_ERRMODE));
+    }
+
+    public function test_close_rolls_back_open_transaction(): void
+    {
+        $file = sys_get_temp_dir() . '/mi-framework-pdo-' . uniqid() . '.sqlite';
+
+        try {
+            $driver = new PDODriver();
+            $driver->connect('sqlite', '', 0, $file, '', '');
+            $driver->execute('CREATE TABLE t (id INTEGER)');
+            $driver->beginTransaction();
+            $driver->insert('t', ['id' => 1]);
+            $this->assertTrue($driver->inTransaction());
+
+            $driver->close();
+
+            $driver2 = new PDODriver();
+            $driver2->connect('sqlite', '', 0, $file, '', '');
+            $this->assertSame(0, (int) $driver2->selectValue('SELECT COUNT(*) FROM t'));
+            $driver2->close();
+        } finally {
+            @unlink($file);
+            @unlink($file . '-journal');
+        }
+    }
+
+    public function test_insert_with_invalid_column_throws(): void
+    {
+        $this->expectException(BuilderException::class);
+
+        $this->driver->insert('users', ['name; DROP TABLE users' => 'x']);
+    }
+
+    public function test_insert_with_invalid_table_throws(): void
+    {
+        $this->expectException(BuilderException::class);
+
+        $this->driver->insert('users; DROP TABLE users', ['name' => 'x']);
+    }
+
+    public function test_update_with_invalid_column_throws(): void
+    {
+        $this->expectException(BuilderException::class);
+
+        $this->driver->update('users', ['name; DROP TABLE users' => 'x'], 'id = ?', [1]);
+    }
+
+    public function test_table_exists_throws_for_unsupported_protocol(): void
+    {
+        $driver = new PDODriver();
+        $driver->connect('sqlite', '', 0, ':memory:', '', '');
+
+        $reflection = new \ReflectionProperty(PDODriver::class, 'config');
+        $config = $reflection->getValue($driver);
+        $config['protocol'] = 'oracle';
+        $reflection->setValue($driver, $config);
+
+        $this->expectException(UnsupportedDriverException::class);
+
+        $driver->tableExists('users');
     }
 
     private function seedUsers(): void

@@ -7,6 +7,8 @@ namespace Database\Drivers;
 use Closure;
 use Database\Exceptions\ConnectionException;
 use Database\Exceptions\QueryException;
+use Database\Exceptions\UnsupportedDriverException;
+use Database\Query\Identifier;
 use PDO;
 use PDOException;
 use PDOStatement;
@@ -53,6 +55,17 @@ class PDODriver implements DatabaseDriver
 
     public function close(): void
     {
+        // Roll back any open transaction before dropping the connection so
+        // uncommitted work is never silently discarded while the caller
+        // believes it was saved.
+        if ($this->inTransaction()) {
+            try {
+                $this->pdo->rollBack();
+            } catch (PDOException $e) {
+                error_log('PDODriver::close() failed to roll back an open transaction: ' . $e->getMessage());
+            }
+        }
+
         $this->pdo = null;
         $this->queryLog = [];
         $this->lastQuery = null;
@@ -90,7 +103,12 @@ class PDODriver implements DatabaseDriver
 
     public function getConfig(): array
     {
-        return $this->config;
+        // Security: keep credentials out of the public API. Internal callers
+        // such as reconnect() read $this->config directly and stay untouched.
+        $config = $this->config;
+        $config['password'] = '******';
+
+        return $config;
     }
 
     public function getDatabaseName(): string
@@ -140,7 +158,14 @@ class PDODriver implements DatabaseDriver
             throw new QueryException('Cannot insert an empty data set', 0, null, "INSERT INTO {$table}");
         }
 
-        $columns = implode(', ', array_keys($data));
+        // Security: quote table and column identifiers with the active driver
+        // dialect so caller-supplied names can never inject SQL.
+        $protocol = $this->protocol();
+        $table = Identifier::wrapSegment($table, $protocol);
+        $columns = implode(', ', array_map(
+            static fn (string $column): string => Identifier::wrapSegment($column, $protocol),
+            array_keys($data),
+        ));
         $placeholders = implode(', ', array_fill(0, count($data), '?'));
         $query = "INSERT INTO {$table} ({$columns}) VALUES ({$placeholders})";
 
@@ -151,7 +176,12 @@ class PDODriver implements DatabaseDriver
 
     public function update(string $table, array $data, string $where, array $bindings = []): int
     {
-        $set = implode(', ', array_map(static fn (string $column): string => "{$column} = ?", array_keys($data)));
+        $protocol = $this->protocol();
+        $table = Identifier::wrapSegment($table, $protocol);
+        $set = implode(', ', array_map(
+            static fn (string $column): string => Identifier::wrapSegment($column, $protocol) . ' = ?',
+            array_keys($data),
+        ));
         $query = "UPDATE {$table} SET {$set} WHERE {$where}";
 
         return $this->execute($query, array_merge(array_values($data), $bindings));
@@ -159,6 +189,8 @@ class PDODriver implements DatabaseDriver
 
     public function delete(string $table, string $where, array $bindings = []): int
     {
+        $protocol = $this->protocol();
+        $table = Identifier::wrapSegment($table, $protocol);
         $query = "DELETE FROM {$table} WHERE {$where}";
 
         return $this->execute($query, $bindings);
@@ -217,7 +249,9 @@ class PDODriver implements DatabaseDriver
 
     public function tableExists(string $table): bool
     {
-        $result = match ($this->config['protocol'] ?? '') {
+        $protocol = $this->config['protocol'] ?? '';
+
+        $result = match ($protocol) {
             'sqlite' => $this->selectValue(
                 "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
                 [$table],
@@ -230,7 +264,11 @@ class PDODriver implements DatabaseDriver
                 "SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = ?",
                 [$table],
             ),
-            default => false,
+            // An unknown driver must fail loudly instead of masquerading as
+            // "table not found", which would hide misconfiguration bugs.
+            default => throw new UnsupportedDriverException(
+                "tableExists() does not support the [{$protocol}] driver.",
+            ),
         };
 
         return (bool) $result;
@@ -256,6 +294,11 @@ class PDODriver implements DatabaseDriver
         return $this->lastQuery;
     }
 
+    private function protocol(): string
+    {
+        return $this->config['protocol'] ?? '';
+    }
+
     private function createConnection(array $config): PDO
     {
         $defaults = [
@@ -268,6 +311,12 @@ class PDODriver implements DatabaseDriver
         }
 
         $options = array_replace($defaults, $config['options']);
+
+        // Security: the error and fetch modes must not be overridable through
+        // user-supplied options, otherwise prepare()/execute() failures would
+        // be swallowed silently instead of surfacing as exceptions.
+        $options[PDO::ATTR_ERRMODE] = PDO::ERRMODE_EXCEPTION;
+        $options[PDO::ATTR_DEFAULT_FETCH_MODE] = PDO::FETCH_ASSOC;
 
         return new PDO(
             $this->buildDsn($config),
@@ -296,6 +345,13 @@ class PDODriver implements DatabaseDriver
 
         try {
             $statement = $this->pdo->prepare($query);
+
+            // prepare() may return false if a driver ignores ERRMODE; never
+            // call execute() on a failed statement.
+            if ($statement === false) {
+                throw new QueryException('Failed to prepare the query.', 0, null, $query, $bindings);
+            }
+
             $statement->execute($bindings);
         } catch (PDOException $e) {
             throw new QueryException($e->getMessage(), $e->getCode(), $e, $query, $bindings);
